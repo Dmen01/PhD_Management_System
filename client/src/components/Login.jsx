@@ -1,0 +1,121 @@
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Mail, Lock, CheckSquare, Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const Login = () => {
+    const { role } = useParams();
+    const navigate = useNavigate();
+    const [showPassword, setShowPassword] = React.useState(false);
+
+    return (
+        <div className="min-h-screen bg-white text-slate-900 flex">
+            {/* Left Side - Form */}
+            <div className="w-full lg:w-1/2 p-8 md:p-12 lg:p-16 flex flex-col justify-center relative">
+                <motion.button 
+                    whileHover={{ x: -5 }}
+                    onClick={() => navigate('/')} 
+                    className="absolute top-8 left-8 flex items-center text-slate-400 hover:text-indigo-600 transition-colors"
+                >
+                    <ArrowLeft size={20} className="mr-2" />
+                    Back to Home
+                </motion.button>
+
+                <div className="max-w-md w-full mx-auto space-y-8">
+                    <div className="space-y-2">
+                        <div className="h-12 w-12 bg-indigo-600 rounded-xl mb-6 flex items-center justify-center">
+                            {/* Simple Logo Placeholder */}
+                            <div className="w-6 h-6 border-4 border-white rounded-full"></div>
+                        </div>
+                        <h1 className="text-4xl font-bold text-slate-900">Welcome back !</h1>
+                        <p className="text-slate-500">Enter to get unlimited access to data & information.</p>
+                    </div>
+
+                    <form className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-sm font-semibold text-slate-700">Email <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <input 
+                                    type="email" 
+                                    placeholder="Enter your mail address"
+                                    className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-semibold text-slate-700">Password <span className="text-red-500">*</span></label>
+                            <div className="relative">
+                                <input 
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Enter password"
+                                    className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+                                />
+                                <button 
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                                <div className="relative">
+                                    <input type="checkbox" className="peer sr-only" />
+                                    <div className="w-5 h-5 border-2 border-indigo-500 rounded flex items-center justify-center peer-checked:bg-indigo-600 transition-colors">
+                                        <CheckSquare size={14} className="text-white opacity-0 peer-checked:opacity-100" />
+                                    </div>
+                                </div>
+                                <span className="text-sm font-medium text-slate-700">Remember me</span>
+                            </label>
+                            <a href="#" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">Forgot your password?</a>
+                        </div>
+
+                        <button className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200">
+                            Log In
+                        </button>
+
+                        <div className="relative flex items-center py-2">
+                            <div className="flex-grow border-t border-slate-200"></div>
+                            <span className="flex-shrink-0 mx-4 text-slate-400 text-sm">Or, Login with</span>
+                            <div className="flex-grow border-t border-slate-200"></div>
+                        </div>
+
+                         <button className="w-full h-14 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl transition-all flex items-center justify-center space-x-2">
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-6 h-6" alt="Google" />
+                            <span>Sign up with google</span>
+                        </button>
+
+                         <p className="text-center text-sm font-medium text-slate-600">
+                            Don't have an account? <span onClick={() => navigate('/register')} className="text-indigo-600 hover:underline cursor-pointer">Register here</span>
+                        </p>
+                    </form>
+                </div>
+            </div>
+
+            {/* Right Side - Art / Pattern */}
+            <div className="hidden lg:flex lg:w-1/2 bg-[#2e1065] relative overflow-hidden items-center justify-center">
+                 {/* Geometric Background approximation using CSS */}
+                <div className="absolute inset-0">
+                    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+                    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 translate-y-1/2 -translate-x-1/2"></div>
+                </div>
+
+                {/* Geometric Shapes Grid - Abstract Representation */}
+                <div className="relative z-10 p-12 grid grid-cols-2 gap-4 opacity-80 rotate-12 scale-110">
+                    <div className="w-48 h-48 bg-indigo-500/30 rounded-full backdrop-blur-3xl"></div>
+                    <div className="w-48 h-48 bg-purple-600/30 rounded-2xl backdrop-blur-3xl"></div>
+                    <div className="w-48 h-48 bg-cyan-500/30 rounded-tl-[80px] backdrop-blur-3xl"></div>
+                    <div className="w-48 h-48 bg-blue-600/30 rounded-full backdrop-blur-3xl border border-white/10"></div>
+                </div>
+
+                <div className="absolute bottom-0 w-full h-1/4 bg-gradient-to-t from-[#2e1065] to-transparent z-20"></div>
+            </div>
+        </div>
+    );
+};
+
+export default Login;
