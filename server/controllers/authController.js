@@ -37,6 +37,13 @@ export const registerStudent = async (req, res) => {
         return res.status(400).json({ message: "Email and password are required" });
     }
 
+    const passwordRules = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    if (!passwordRules.test(password)) {
+        return res.status(400).json({
+            message: "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character"
+        });
+    }
+
     try {
         const existing = await pool.query(
             'SELECT id FROM student_login_details WHERE email = $1',

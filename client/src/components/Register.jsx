@@ -16,30 +16,68 @@ const Input = ({ label, icon: Icon, className = "", ...props }) => (
     </div>
 );
 
-const SubmitButton = ({ loading, text, icon: Icon, color }) => {
+const SubmitButton = ({ loading, disabled, text, icon: Icon, color }) => {
     const bgClass = color === 'green'
         ? 'bg-green-600 hover:bg-green-700 shadow-green-200'
         : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200';
+    const isDisabled = loading || disabled;
     return (
-        <button type="submit" disabled={loading} className={`w-full h-14 ${bgClass} text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2`}>
+        <button
+            type="submit"
+            disabled={isDisabled}
+            className={`w-full h-14 ${bgClass} text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center space-x-2 ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
             {loading ? <Loader2 className="animate-spin" /> : <><span>{text}</span><Icon size={18} /></>}
         </button>
     );
 };
 
-const CredentialsForm = ({ form, updateForm, sendOtp, loading }) => (
-    <motion.form
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="space-y-6"
-        onSubmit={sendOtp}
-    >
-        <Input label="Email Address *" name="email" type="email" value={form.email} onChange={updateForm} icon={Mail} placeholder="your@email.com" required />
-        <Input label="Password *" name="password" type="password" value={form.password} onChange={updateForm} icon={Lock} placeholder="Create a password" required />
-        <Input label="Confirm Password *" name="confirmPassword" type="password" value={form.confirmPassword} onChange={updateForm} icon={Lock} placeholder="Confirm your password" required />
-        <SubmitButton loading={loading} text="Verify Email & Continue" icon={Send} color="indigo" />
-    </motion.form>
-);
+const passwordRules = [
+    { label: "At least 8 characters",    test: (p) => p.length >= 8 },
+    { label: "One uppercase letter",      test: (p) => /[A-Z]/.test(p) },
+    { label: "One lowercase letter",      test: (p) => /[a-z]/.test(p) },
+    { label: "One number",               test: (p) => /\d/.test(p) },
+    { label: "One special character",    test: (p) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p) },
+];
+
+const PasswordStrength = ({ password }) => {
+    if (!password) return null;
+    return (
+        <div className="space-y-1 pt-1">
+            {passwordRules.map(({ label, test }) => {
+                const pass = test(password);
+                return (
+                    <div key={label} className={`flex items-center space-x-2 text-xs transition-colors ${pass ? 'text-green-600' : 'text-slate-400'}`}>
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${pass ? 'bg-green-500' : 'bg-slate-200'}`}>
+                            {pass ? '✓' : '·'}
+                        </span>
+                        <span>{label}</span>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+const CredentialsForm = ({ form, updateForm, sendOtp, loading }) => {
+    const allRulesPass = passwordRules.every(({ test }) => test(form.password));
+    return (
+        <motion.form
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="space-y-6"
+            onSubmit={sendOtp}
+        >
+            <Input label="Email Address *" name="email" type="email" value={form.email} onChange={updateForm} icon={Mail} placeholder="Enter Your Email" required />
+            <div className="space-y-2">
+                <Input label="Password *" name="password" type="password" value={form.password} onChange={updateForm} icon={Lock} placeholder="Create a password" required />
+                <PasswordStrength password={form.password} />
+            </div>
+            <Input label="Confirm Password *" name="confirmPassword" type="password" value={form.confirmPassword} onChange={updateForm} icon={Lock} placeholder="Confirm your password" required />
+            <SubmitButton loading={loading} disabled={!allRulesPass} text="Verify Email & Continue" icon={Send} color="indigo" />
+        </motion.form>
+    );
+};
 
 const OtpForm = ({ email, updateForm, register, loading, goBack }) => (
     <motion.form

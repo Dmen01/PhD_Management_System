@@ -12,10 +12,10 @@ export const send = async (req, res) => {
     }
 
     try {
-        // Check if user already exists
-        const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        // Check if student already registered
+        const userCheck = await pool.query('SELECT id FROM student_login_details WHERE email = $1', [email]);
         if (userCheck.rows.length > 0) {
-            return res.status(409).json({ message: "User already exists with this email" });
+            return res.status(409).json({ message: "An account with this email already exists" });
         }
 
         const otp = generateCode();
