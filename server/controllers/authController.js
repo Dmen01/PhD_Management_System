@@ -67,3 +67,49 @@ export const registerStudent = async (req, res) => {
         res.status(500).json({ message: "Server error during registration" });
     }
 };
+
+export const resetPassword = async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+        return res.status(400).json({ message: "Email, OTP, and new password are required" });
+    }
+
+    const passwordRules = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    if (!passwordRules.test(newPassword)) {
+        return res.status(400).json({
+            message: "Password must be at least 8 characters and include uppercase, lowercase, a number, and a special character"
+        });
+    }
+
+    try {
+        // Verify OTP is valid and not expired
+        const otpCheck = await pool.query(
+            'SELECT * FROM otp_codes WHERE email = $1 AND code = $2 AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
+            [email, otp]
+        );
+        if (otpCheck.rows.length === 0) {
+            return res.status(400).json({ message: "Invalid or expired OTP" });
+        }
+
+        // Check account exists
+        const account = await pool.query(
+            'SELECT id FROM student_login_details WHERE email = $1', [email]
+        );
+        if (account.rows.length === 0) {
+            return res.status(404).json({ message: "No account found with this email" });
+        }
+
+        const hash = await bcrypt.hash(newPassword, 10);
+        await pool.query(
+            'UPDATE student_login_details SET password_hash = $1 WHERE email = $2',
+            [hash, email]
+        );
+
+        res.json({ message: "Password reset successfully" });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error during password reset" });
+    }
+};

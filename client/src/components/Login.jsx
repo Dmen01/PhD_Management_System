@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Lock, CheckSquare, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Login = () => {
@@ -61,17 +61,14 @@ const Login = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <div className="relative">
-                                    <input type="checkbox" className="peer sr-only" />
-                                    <div className="w-5 h-5 border-2 border-indigo-500 rounded flex items-center justify-center peer-checked:bg-indigo-600 transition-colors">
-                                        <CheckSquare size={14} className="text-white opacity-0 peer-checked:opacity-100" />
-                                    </div>
-                                </div>
-                                <span className="text-sm font-medium text-slate-700">Remember me</span>
-                            </label>
-                            <a href="#" className="text-sm font-medium text-indigo-600 hover:text-indigo-700">Forgot your password?</a>
+                        <div className="flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => navigate('/forgot-password')}
+                                className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                            >
+                                Forgot your password?
+                            </button>
                         </div>
 
                         <button className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200">

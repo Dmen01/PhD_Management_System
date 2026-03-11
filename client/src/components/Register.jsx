@@ -1,7 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Lock, Check, Send, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowLeft, Mail, Lock, Check, Send, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const Toast = ({ message }) => (
+    <motion.div
+        initial={{ opacity: 0, y: -60 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -60 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center space-x-3 bg-green-600 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-green-300"
+    >
+        <CheckCircle size={22} className="shrink-0" />
+        <span className="font-semibold text-sm">{message}</span>
+    </motion.div>
+);
 
 const Input = ({ label, icon: Icon, className = "", ...props }) => (
     <div className="space-y-2">
@@ -15,6 +28,34 @@ const Input = ({ label, icon: Icon, className = "", ...props }) => (
         </div>
     </div>
 );
+
+const PasswordInput = ({ label, name, value, onChange, placeholder }) => {
+    const [show, setShow] = useState(false);
+    return (
+        <div className="space-y-2">
+            <label className="text-sm font-semibold text-slate-700">{label}</label>
+            <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                    name={name}
+                    type={show ? 'text' : 'password'}
+                    value={value}
+                    onChange={onChange}
+                    placeholder={placeholder}
+                    required
+                    className="w-full h-12 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all pl-12 pr-12"
+                />
+                <button
+                    type="button"
+                    onClick={() => setShow(!show)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors"
+                >
+                    {show ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+            </div>
+        </div>
+    );
+};
 
 const SubmitButton = ({ loading, disabled, text, icon: Icon, color }) => {
     const bgClass = color === 'green'
@@ -70,10 +111,10 @@ const CredentialsForm = ({ form, updateForm, sendOtp, loading }) => {
         >
             <Input label="Email Address *" name="email" type="email" value={form.email} onChange={updateForm} icon={Mail} placeholder="Enter Your Email" required />
             <div className="space-y-2">
-                <Input label="Password *" name="password" type="password" value={form.password} onChange={updateForm} icon={Lock} placeholder="Create a password" required />
+                <PasswordInput label="Password *" name="password" value={form.password} onChange={updateForm} placeholder="Create a password" />
                 <PasswordStrength password={form.password} />
             </div>
-            <Input label="Confirm Password *" name="confirmPassword" type="password" value={form.confirmPassword} onChange={updateForm} icon={Lock} placeholder="Confirm your password" required />
+            <PasswordInput label="Confirm Password *" name="confirmPassword" value={form.confirmPassword} onChange={updateForm} placeholder="Confirm your password" />
             <SubmitButton loading={loading} disabled={!allRulesPass} text="Verify Email & Continue" icon={Send} color="indigo" />
         </motion.form>
     );
@@ -110,6 +151,7 @@ const Register = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [showToast, setShowToast] = useState(false);
     const [form, setForm] = useState({ email: '', password: '', confirmPassword: '', otp: '' });
 
     const updateForm = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -157,8 +199,11 @@ const Register = () => {
             });
             const data = await res.json();
             if (res.ok) {
-                alert("Registration Successful! You can now log in.");
-                navigate('/login/student');
+                setShowToast(true);
+                setTimeout(() => {
+                    setShowToast(false);
+                    navigate('/login/student');
+                }, 3000);
             } else {
                 alert(data.message);
             }
@@ -172,6 +217,9 @@ const Register = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+            <AnimatePresence>
+                {showToast && <Toast message="Registration successful! Redirecting to login..." />}
+            </AnimatePresence>
             <div className="w-full lg:w-1/2 p-8 md:p-12 lg:px-20 lg:py-12 flex flex-col justify-center relative overflow-y-auto">
                 <motion.button
                     whileHover={{ x: -5 }}
