@@ -78,17 +78,6 @@ const Login = () => {
                             Log In
                         </button>
 
-                        <div className="relative flex items-center py-2">
-                            <div className="flex-grow border-t border-slate-200"></div>
-                            <span className="flex-shrink-0 mx-4 text-slate-400 text-sm">Or, Login with</span>
-                            <div className="flex-grow border-t border-slate-200"></div>
-                        </div>
-
-                         <button className="w-full h-14 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl transition-all flex items-center justify-center space-x-2">
-                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-6 h-6" alt="Google" />
-                            <span>Sign up with google</span>
-                        </button>
-
                          <p className="text-center text-sm font-medium text-slate-600">
                             Don't have an account? <span onClick={() => navigate('/register')} className="text-indigo-600 hover:underline cursor-pointer">Register here</span>
                         </p>

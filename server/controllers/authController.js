@@ -31,70 +31,32 @@ export const login = async (req, res) => {
 };
 
 export const registerStudent = async (req, res) => {
-    const { 
-        firstName, middleName, lastName, 
-        yearOfAdmission, applicationNumber, 
-        email, password, otp 
-    } = req.body;
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+    }
 
     try {
-        // Verify OTP again 
-         const otpCheck = await pool.query(
-            'SELECT * FROM otp_codes WHERE email = $1 AND code = $2 AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1',
-            [email, otp]
+        const existing = await pool.query(
+            'SELECT id FROM student_login_details WHERE email = $1',
+            [email]
         );
-
-        if (otpCheck.rows.length === 0) {
-            return res.status(400).json({ message: "Invalid or expired OTP. Please verify again." });
+        if (existing.rows.length > 0) {
+            return res.status(409).json({ message: "An account with this email already exists" });
         }
-
-        // Hash Password
 
         const hash = await bcrypt.hash(password, 10);
 
-        // Create User
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN'); // Transaction
+        await pool.query(
+            'INSERT INTO student_login_details (email, password_hash) VALUES ($1, $2)',
+            [email, hash]
+        );
 
-            // Insert into users
-            const newUser = await client.query(
-                'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id',
-                [`${firstName} ${lastName}`, email, hash, 'student']
-            );
-            const userId = newUser.rows[0].id;
-
-            // Insert into student_profiles
-            await client.query(
-                `INSERT INTO student_profiles 
-                (user_id, first_name, middle_name, last_name, year_of_admission, application_number) 
-                VALUES ($1, $2, $3, $4, $5, $6)`,
-                [userId, firstName, middleName || null, lastName, yearOfAdmission, applicationNumber]
-            );
-
-            await client.query('COMMIT');
-            
-            // Generate auto-login token
-            const token = jwt.sign({ id: userId, role: 'student' }, process.env.JWT_SECRET, { expiresIn: '1h' });
-            
-            res.status(201).json({ 
-                message: "Student registered successfully", 
-                token, 
-                user: { id: userId, name: `${firstName} ${lastName}`, role: 'student' } 
-            });
-
-        } catch (e) {
-            await client.query('ROLLBACK');
-            throw e;
-        } finally {
-            client.release();
-        }
+        res.status(201).json({ message: "Student registered successfully" });
 
     } catch (err) {
         console.error(err);
-        if (err.code === '23505') { // Unique constraint violation
-             return res.status(409).json({ message: "Email or Application Number already exists" });
-        }
-        res.status(500).json({ message: "Server Error during registration" });
+        res.status(500).json({ message: "Server error during registration" });
     }
 };
