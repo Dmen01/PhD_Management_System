@@ -51,14 +51,44 @@ export const verify = async (req, res) => {
             return res.status(400).json({ message: "Invalid or expired OTP" });
         }
 
-        // OTP is valid
         res.json({ message: "OTP verified successfully" });
-        
-        // Optionally delete used OTPs or keep for audit
-        // await pool.query('DELETE FROM otp_codes WHERE email = $1', [email]);
 
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Server error verifying OTP" });
+    }
+};
+
+// Separate OTP send for password reset — email MUST already exist
+export const sendReset = async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+    }
+
+    try {
+        const account = await pool.query(
+            'SELECT id FROM student_login_details WHERE email = $1', [email]
+        );
+        if (account.rows.length === 0) {
+            return res.status(404).json({ message: "No account found with this email" });
+        }
+
+        const otp = generateCode();
+        const expiresAt = new Date(Date.now() + 10 * 60000);
+
+        await pool.query(
+            'INSERT INTO otp_codes (email, code, expires_at) VALUES ($1, $2, $3)',
+            [email, otp, expiresAt]
+        );
+
+        console.log(`[MOCK EMAIL - RESET] To: ${email} | Code: ${otp}`);
+
+        res.json({ message: "Reset OTP sent successfully" });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error sending reset OTP" });
     }
 };

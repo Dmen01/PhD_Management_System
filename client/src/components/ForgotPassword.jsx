@@ -99,7 +99,7 @@ const EmailStep = ({ email, setEmail, onSubmit, loading }) => (
         </p>
         <Input label="Email Address *" name="email" type="email" icon={Mail}
             value={email} onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com" required />
+            placeholder="Enter Your Email" required />
         <SubmitButton loading={loading} text="Send Verification Code" icon={Send} />
     </motion.form>
 );
@@ -160,20 +160,14 @@ const ForgotPassword = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5001/api/auth/otp/send', {
+            const res = await fetch('http://localhost:5001/api/auth/otp/send-reset', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
             });
             const data = await res.json();
-            // Allow sending OTP even if account doesn't exist yet — check on backend
-            // For reset we need the account to exist; backend will guide accordingly
-            if (res.ok || res.status === 409) {
-                // 409 means email exists (that's what we want for a password reset)
-                setStep(1);
-            } else {
-                alert(data.message);
-            }
+            if (res.ok) setStep(1);
+            else alert(data.message);
         } catch (err) {
             console.error(err);
             alert("Failed to connect to server");
