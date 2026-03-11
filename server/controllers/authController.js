@@ -1,33 +1,33 @@
 import pool from '../db.js';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 export const login = async (req, res) => {
-  const { role, email, password } = req.body; 
+    const { email, password } = req.body;
 
-  try {
-    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (result.rows.length === 0) return res.status(400).json({ message: 'User not found' });
-
-    const user = result.rows[0];
-
-    const validPassword = await bcrypt.compare(password, user.password_hash);
-    if (!validPassword) return res.status(400).json({ message: 'Invalid Password' });
-
-    if (role && user.role !== role.toLowerCase()) {
-        return res.status(403).json({ message: `Access denied. You are not a ${role}.` });
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    try {
+        const result = await pool.query(
+            'SELECT * FROM student_login_details WHERE email = $1',
+            [email]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'No account found with this email' });
+        }
 
-    res.json({ token, user: { id: user.id, name: user.name, role: user.role } });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
-  }
+        const student = result.rows[0];
+        const validPassword = await bcrypt.compare(password, student.password_hash);
+        if (!validPassword) {
+            return res.status(401).json({ message: 'Incorrect password' });
+        }
+
+        res.json({ message: 'Login successful', student: { id: student.id, email: student.email } });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
 };
 
 export const registerStudent = async (req, res) => {
