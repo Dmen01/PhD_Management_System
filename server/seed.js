@@ -9,26 +9,22 @@ const __dirname = path.dirname(__filename);
 
 const seedDatabase = async () => {
   try {
-    console.log('Reading schema...');
-    const schemaSql = fs.readFileSync(path.join(__dirname, 'database.sql'), 'utf8');
-
     console.log('Applying schema...');
+    const schemaSql = fs.readFileSync(path.join(__dirname, 'database.sql'), 'utf8');
     await pool.query(schemaSql);
 
-    // 3. Create Users
-    console.log('Creating initial users...');
-    const hashedPwd = await bcrypt.hash('password123', 10);
+    console.log('Seeding sample student accounts...');
+    const hashedPwd = await bcrypt.hash('Password1!', 10);
 
-    const users = [
-      { name: 'Alice Student', email: 'student@example.com', role: 'student' },
-      { name: 'Bob Teacher', email: 'teacher@example.com', role: 'teacher' },
-      { name: 'Charlie Admin', email: 'admin@example.com', role: 'admin' },
+    const students = [
+      { email: 'student1@example.com' },
+      { email: 'student2@example.com' },
     ];
 
-    for (const user of users) {
+    for (const student of students) {
       await pool.query(
-        'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4)',
-        [user.name, user.email, hashedPwd, user.role]
+        'INSERT INTO student_login_details (email, password_hash) VALUES ($1, $2) ON CONFLICT (email) DO NOTHING',
+        [student.email, hashedPwd]
       );
     }
 
@@ -41,3 +37,4 @@ const seedDatabase = async () => {
 };
 
 seedDatabase();
+

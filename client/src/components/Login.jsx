@@ -10,7 +10,36 @@ const Login = () => {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [emailError, setEmailError] = useState('');
+    const [loginError, setLoginError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        if (!isValidEmail(email)) return setEmailError('Please enter a valid email address');
+        setLoading(true);
+        setLoginError('');
+        try {
+            const res = await fetch('http://localhost:5001/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem('studentEmail', email);
+                navigate('/dashboard/student');
+            } else {
+                setLoginError(data.message);
+            }
+        } catch (err) {
+            console.error(err);
+            setLoginError('Failed to connect to server');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-white text-slate-900 flex">
@@ -35,7 +64,12 @@ const Login = () => {
                         <p className="text-slate-500">Enter to get unlimited access to data & information.</p>
                     </div>
 
-                    <form className="space-y-6">
+                    <form className="space-y-6" onSubmit={handleLogin}>
+                        {loginError && (
+                            <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
+                                {loginError}
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <label className="text-sm font-semibold text-slate-700">Email <span className="text-red-500">*</span></label>
                             <div className="relative">
@@ -54,10 +88,12 @@ const Login = () => {
                         <div className="space-y-2">
                             <label className="text-sm font-semibold text-slate-700">Password <span className="text-red-500">*</span></label>
                             <div className="relative">
-                                <input 
-                                    type={showPassword ? "text" : "password"}
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Enter password"
-                                    className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+                                    className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none pr-12"
                                 />
                                 <button 
                                     type="button"
@@ -79,8 +115,11 @@ const Login = () => {
                             </button>
                         </div>
 
-                        <button className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200">
-                            Log In
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className={`w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200 flex items-center justify-center ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                            {loading ? <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'Log In'}
                         </button>
 
                          <p className="text-center text-sm font-medium text-slate-600">
