@@ -18,9 +18,9 @@ const FeeRecord = ({ fee }) => {
     return (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             className="space-y-4">
-            <div className="flex items-center space-x-2 text-green-400">
+            <div className="flex items-center space-x-2 text-green-600">
                 <CheckCircle size={18} />
-                <span className="text-sm font-semibold">Fee receipt submitted — read only</span>
+                <span className="text-sm font-semibold">Fee receipt submitted</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -33,7 +33,7 @@ const FeeRecord = ({ fee }) => {
                 href={`${API}/${fee.receipt_pdf_path}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-semibold text-white transition-all"
+                className="inline-flex items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-semibold text-white transition-all shadow-sm shadow-blue-200"
             >
                 <FileText size={16} />
                 <span>View Receipt PDF</span>
@@ -44,13 +44,13 @@ const FeeRecord = ({ fee }) => {
 };
 
 const InfoCard = ({ icon: Icon, label, value }) => (
-    <div className="bg-white/5 border border-white/8 rounded-xl p-4 flex items-start space-x-3">
-        <div className="w-8 h-8 bg-indigo-500/15 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-            <Icon size={15} className="text-indigo-400" />
+    <div className="bg-white rounded-xl border border-blue-100 p-4 flex items-start space-x-3 shadow-sm">
+        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+            <Icon size={15} className="text-blue-500" />
         </div>
         <div>
-            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">{label}</p>
-            <p className="text-sm text-white font-semibold mt-0.5">{value}</p>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">{label}</p>
+            <p className="text-sm text-slate-800 font-semibold mt-0.5">{value}</p>
         </div>
     </div>
 );
@@ -101,7 +101,7 @@ const UploadForm = ({ applicationNumber, semester, onSuccess }) => {
             onSubmit={submit} className="space-y-5">
 
             {error && (
-                <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">
+                <div className="bg-red-50 border border-red-100 text-red-500 text-sm px-4 py-3 rounded-xl">
                     {error}
                 </div>
             )}
@@ -110,18 +110,18 @@ const UploadForm = ({ applicationNumber, semester, onSuccess }) => {
             <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Fee Receipt PDF *</label>
                 <label className={`flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed cursor-pointer transition-all
-                    ${file ? 'border-indigo-500 bg-indigo-500/10' : 'border-white/10 bg-white/3 hover:border-indigo-500/50 hover:bg-white/5'}`}>
+                    ${file ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/50'}`}>
                     <div className="flex flex-col items-center space-y-2 text-center px-4">
                         {file ? (
                             <>
-                                <FileText size={22} className="text-indigo-400" />
-                                <span className="text-sm font-medium text-indigo-300">{file.name}</span>
-                                <span className="text-xs text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                <FileText size={22} className="text-blue-500" />
+                                <span className="text-sm font-medium text-blue-700">{file.name}</span>
+                                <span className="text-xs text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
                             </>
                         ) : (
                             <>
-                                <Upload size={22} className="text-slate-500" />
-                                <span className="text-sm text-slate-400">Click to upload PDF <span className="text-slate-600">(max 10 MB)</span></span>
+                                <Upload size={22} className="text-slate-400" />
+                                <span className="text-sm text-slate-500">Click to upload PDF <span className="text-slate-400">(max 10 MB)</span></span>
                             </>
                         )}
                     </div>
@@ -137,7 +137,7 @@ const UploadForm = ({ applicationNumber, semester, onSuccess }) => {
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
                     <input type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)}
                         max={new Date().toISOString().split('T')[0]}
-                        className="w-full h-10 bg-white/5 border border-white/10 rounded-lg text-sm text-white pl-9 pr-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                        className="w-full h-10 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 pl-9 pr-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" />
                 </div>
             </div>
 
@@ -146,18 +146,18 @@ const UploadForm = ({ applicationNumber, semester, onSuccess }) => {
                 className="flex items-start space-x-3 group w-full text-left">
                 <div className="shrink-0 mt-0.5">
                     {verified
-                        ? <CheckSquare size={18} className="text-indigo-400" />
-                        : <Square size={18} className="text-slate-500 group-hover:text-slate-300" />}
+                        ? <CheckSquare size={18} className="text-blue-500" />
+                        : <Square size={18} className="text-slate-400 group-hover:text-slate-600" />}
                 </div>
-                <span className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">
+                <span className="text-sm text-slate-500 group-hover:text-slate-700 transition-colors">
                     I verify that the fee payment details and the uploaded receipt are correct.
                     I understand that this submission cannot be edited after uploading.
                 </span>
             </button>
 
             <button type="submit" disabled={loading || !verified || !file || !paymentDate}
-                className={`w-full h-11 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-bold text-white transition-all flex items-center justify-center space-x-2
-                    ${(loading || !verified || !file || !paymentDate) ? 'opacity-40 cursor-not-allowed' : 'shadow-lg shadow-indigo-900/40'}`}>
+                className={`w-full h-11 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-bold text-white transition-all flex items-center justify-center space-x-2
+                    ${(loading || !verified || !file || !paymentDate) ? 'opacity-40 cursor-not-allowed' : 'shadow-lg shadow-blue-200'}`}>
                 {loading ? <Loader2 size={18} className="animate-spin" /> : <><Upload size={16} /><span>Submit Fee Receipt</span></>}
             </button>
         </motion.form>
@@ -214,7 +214,7 @@ const FeeDetails = () => {
         <div className="max-w-2xl space-y-6">
             {/* Header */}
             <div>
-                <h2 className="text-2xl font-bold text-white">Fee Details</h2>
+                <h2 className="text-2xl font-bold text-slate-800">Fee Details</h2>
                 <p className="text-slate-400 text-sm mt-1">Select a semester to view or submit your fee receipt.</p>
             </div>
 
@@ -223,8 +223,8 @@ const FeeDetails = () => {
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Select Semester</label>
                 <div className="relative">
                     <button type="button" onClick={() => setDropdownOpen(!dropdownOpen)}
-                        className="w-full flex items-center justify-between px-4 h-11 bg-white/5 border border-white/10 rounded-xl text-sm text-white hover:border-indigo-500/50 transition-all">
-                        <span className={semester ? 'text-white' : 'text-slate-500'}>
+                        className="w-full flex items-center justify-between px-4 h-11 bg-white border border-slate-200 rounded-xl text-sm shadow-sm hover:border-blue-400 transition-all">
+                        <span className={semester ? 'text-slate-800 font-medium' : 'text-slate-400'}>
                             {semester ? `Semester ${semester}` : 'Choose a semester...'}
                         </span>
                         <motion.div animate={{ rotate: dropdownOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -236,14 +236,14 @@ const FeeDetails = () => {
                         {dropdownOpen && (
                             <motion.div
                                 initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-                                className="absolute z-20 mt-2 w-full bg-[#1e2130] border border-white/10 rounded-xl shadow-2xl overflow-hidden">
+                                className="absolute z-20 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
                                 <div className="grid grid-cols-4 gap-1 p-2">
                                     {SEMESTERS.map(s => (
                                         <button key={s} type="button" onClick={() => selectSemester(s)}
                                             className={`py-2.5 rounded-lg text-sm font-medium transition-all
                                                 ${semester === s
-                                                    ? 'bg-indigo-600 text-white'
-                                                    : 'text-slate-300 hover:bg-white/8'}`}>
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'}`}>
                                             Sem {s}
                                         </button>
                                     ))}
@@ -273,8 +273,8 @@ const FeeDetails = () => {
 
                 {semester && !fetching && feeData && (
                     <motion.div key="record" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="bg-white/4 border border-white/8 rounded-2xl p-5">
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Semester {semester} Fee Record</p>
+                        className="bg-white border border-blue-100 rounded-2xl p-5 shadow-sm">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Semester {semester} Fee Record</p>
                         <FeeRecord fee={feeData} />
                     </motion.div>
                 )}
@@ -287,8 +287,8 @@ const FeeDetails = () => {
 
                 {semester && !fetching && noRecord && applicationNumber && (
                     <motion.div key="upload" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="bg-white/4 border border-white/8 rounded-2xl p-5">
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Upload Semester {semester} Fee Receipt</p>
+                        className="bg-white border border-blue-100 rounded-2xl p-5 shadow-sm">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Upload Semester {semester} Fee Receipt</p>
                         <UploadForm
                             applicationNumber={applicationNumber}
                             semester={semester}
