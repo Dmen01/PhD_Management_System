@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, CreditCard, BookOpen, ChevronDown, ClipboardList, BarChart2, LogOut, GraduationCap } from 'lucide-react';
 import StudentRegistrationModal from './StudentRegistrationModal';
 import StudentProfile from './StudentProfile';
+import FeeDetails from './FeeDetails';
 
 // ── Sidebar nav config ────────────────────────────────────────────────────────
 const NAV = [
@@ -96,7 +97,7 @@ const Placeholder = ({ title }) => (
 
 const PANELS = {
     profile:             <StudentProfile />,
-    fee:                 <Placeholder title="Fee Details" />,
+    fee:                 <FeeDetails />,
     'prephd-coursework': <Placeholder title="Pre-PhD Coursework" />,
     'prephd-result':     <Placeholder title="Pre-PhD Result" />,
 };

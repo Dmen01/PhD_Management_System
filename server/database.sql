@@ -32,3 +32,15 @@ CREATE TABLE student_master (
   year_of_admission INTEGER NOT NULL CHECK (year_of_admission >= 1900 AND year_of_admission <= 2100),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Fee payment records — one per student per semester, student cannot edit after submission
+CREATE TABLE fee_details (
+  id SERIAL PRIMARY KEY,
+  application_number VARCHAR(50) NOT NULL REFERENCES student_master(application_number) ON DELETE CASCADE,
+  semester INTEGER NOT NULL CHECK (semester >= 1 AND semester <= 12),
+  payment_date DATE NOT NULL,
+  receipt_pdf_path VARCHAR(500) NOT NULL,
+  verified_by_student BOOLEAN NOT NULL DEFAULT FALSE,
+  submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(application_number, semester)
+);

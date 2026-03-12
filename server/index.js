@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import pool from './db.js';
 import authRoutes from './routes/authRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
+import feeRoutes from './routes/feeRoutes.js';
 
 dotenv.config();
 
@@ -12,6 +13,7 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads')); // serve uploaded PDFs
 
 app.get('/', (req, res) => {
   res.send('PhD ERP API is running');
@@ -29,6 +31,7 @@ app.get('/api/health', async (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
+app.use('/api/fee', feeRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
