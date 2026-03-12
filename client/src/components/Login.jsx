@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+
 const Login = () => {
     const { role } = useParams();
     const navigate = useNavigate();
-    const [showPassword, setShowPassword] = React.useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState('');
+    const [emailError, setEmailError] = useState('');
 
     return (
         <div className="min-h-screen bg-white text-slate-900 flex">
@@ -35,12 +39,16 @@ const Login = () => {
                         <div className="space-y-2">
                             <label className="text-sm font-semibold text-slate-700">Email <span className="text-red-500">*</span></label>
                             <div className="relative">
-                                <input 
-                                    type="email" 
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
+                                    onBlur={() => !isValidEmail(email) && email && setEmailError('Please enter a valid email address')}
                                     placeholder="Enter your mail address"
-                                    className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+                                    className={`w-full h-12 px-4 rounded-xl border transition-all outline-none focus:ring-2 ${emailError ? 'border-red-400 focus:border-red-400 focus:ring-red-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-indigo-200'}`}
                                 />
                             </div>
+                            {emailError && <p className="text-xs text-red-500 mt-1">{emailError}</p>}
                         </div>
 
                         <div className="space-y-2">

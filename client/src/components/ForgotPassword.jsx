@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, Send, Check, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
+
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Reusable UI ──────────────────────────────────────────────────────────────
@@ -91,18 +93,32 @@ const SubmitButton = ({ loading, disabled, text, icon: Icon }) => {
 
 // ── Step Components ──────────────────────────────────────────────────────────
 
-const EmailStep = ({ email, setEmail, onSubmit, loading }) => (
-    <motion.form initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-        className="space-y-6" onSubmit={onSubmit}>
-        <p className="text-slate-500 text-sm">
-            Enter the email address linked to your account. We'll send a verification code to it.
-        </p>
-        <Input label="Email Address *" name="email" type="email" icon={Mail}
-            value={email} onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter Your Email" required />
-        <SubmitButton loading={loading} text="Send Verification Code" icon={Send} />
-    </motion.form>
-);
+const EmailStep = ({ email, setEmail, onSubmit, loading }) => {
+    const [emailError, setEmailError] = useState('');
+    const handleSubmit = (e) => {
+        if (!isValidEmail(email)) { setEmailError('Please enter a valid email address'); return e.preventDefault(); }
+        onSubmit(e);
+    };
+    return (
+        <motion.form initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+            className="space-y-6" onSubmit={handleSubmit}>
+            <p className="text-slate-500 text-sm">
+                Enter the email address linked to your account. We'll send a verification code to it.
+            </p>
+            <div className="space-y-1">
+                <Input label="Email Address *" name="email" type="email" icon={Mail}
+                    value={email}
+                    onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
+                    onBlur={() => email && !isValidEmail(email) && setEmailError('Please enter a valid email address')}
+                    placeholder="Enter Your Email" required
+                    className={emailError ? '!border-red-400' : ''}
+                />
+                {emailError && <p className="text-xs text-red-500 pl-1">{emailError}</p>}
+            </div>
+            <SubmitButton loading={loading} text="Send Verification Code" icon={Send} />
+        </motion.form>
+    );
+};
 
 const OtpStep = ({ email, otp, setOtp, onSubmit, loading, goBack }) => (
     <motion.form initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}

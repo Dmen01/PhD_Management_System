@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, Check, Send, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+
 const Toast = ({ message }) => (
     <motion.div
         initial={{ opacity: 0, y: -60 }}
@@ -101,15 +103,27 @@ const PasswordStrength = ({ password }) => {
 };
 
 const CredentialsForm = ({ form, updateForm, sendOtp, loading }) => {
+    const [emailError, setEmailError] = useState('');
     const allRulesPass = passwordRules.every(({ test }) => test(form.password));
+    const handleEmailChange = (e) => { updateForm(e); setEmailError(''); };
+    const handleEmailBlur = () => {
+        if (form.email && !isValidEmail(form.email)) setEmailError('Please enter a valid email address');
+    };
     return (
         <motion.form
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="space-y-6"
-            onSubmit={sendOtp}
+            onSubmit={(e) => { if (!isValidEmail(form.email)) { setEmailError('Please enter a valid email address'); return e.preventDefault(); } sendOtp(e); }}
         >
-            <Input label="Email Address *" name="email" type="email" value={form.email} onChange={updateForm} icon={Mail} placeholder="Enter Your Email" required />
+            <div className="space-y-1">
+                <Input label="Email Address *" name="email" type="email" value={form.email}
+                    onChange={handleEmailChange} onBlur={handleEmailBlur}
+                    icon={Mail} placeholder="Enter Your Email" required
+                    className={emailError ? '!border-red-400' : ''}
+                />
+                {emailError && <p className="text-xs text-red-500 pl-1">{emailError}</p>}
+            </div>
             <div className="space-y-2">
                 <PasswordInput label="Password *" name="password" value={form.password} onChange={updateForm} placeholder="Create a password" />
                 <PasswordStrength password={form.password} />
