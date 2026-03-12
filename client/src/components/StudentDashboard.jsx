@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-    User, CreditCard, BookOpen, ChevronDown,
-    ClipboardList, BarChart2, LogOut, GraduationCap
-} from 'lucide-react';
+import { User, CreditCard, BookOpen, ChevronDown, ClipboardList, BarChart2, LogOut, GraduationCap } from 'lucide-react';
 import StudentRegistrationModal from './StudentRegistrationModal';
+import StudentProfile from './StudentProfile';
 
 // ── Sidebar nav config ────────────────────────────────────────────────────────
 const NAV = [
@@ -97,10 +95,10 @@ const Placeholder = ({ title }) => (
 );
 
 const PANELS = {
-    profile:            <Placeholder title="Profile" />,
-    fee:                <Placeholder title="Fee Details" />,
+    profile:             <StudentProfile />,
+    fee:                 <Placeholder title="Fee Details" />,
     'prephd-coursework': <Placeholder title="Pre-PhD Coursework" />,
-    'prephd-result':    <Placeholder title="Pre-PhD Result" />,
+    'prephd-result':     <Placeholder title="Pre-PhD Result" />,
 };
 
 // ── Main Dashboard ────────────────────────────────────────────────────────────

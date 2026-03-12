@@ -17,7 +17,7 @@ const Input = ({ icon: Icon, error, ...props }) => (
     <div className="relative">
         {Icon && <Icon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />}
         <input
-            className={`w-full h-10 rounded-lg border text-sm outline-none transition-all ${Icon ? 'pl-9' : 'px-3'} pr-3
+            className={`w-full h-10 rounded-lg border text-sm text-slate-900 placeholder:text-slate-400 outline-none transition-all ${Icon ? 'pl-9' : 'px-3'} pr-3
                 ${error ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100' : 'border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100'}`}
             {...props}
         />
