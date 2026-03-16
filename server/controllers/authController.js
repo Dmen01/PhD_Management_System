@@ -1,5 +1,6 @@
 import pool from '../db.js';
 import bcrypt from 'bcryptjs';
+import logger from '../utils/logger.js';
 
 export const login = async (req, res) => {
     const { email, password } = req.body;
@@ -25,7 +26,7 @@ export const login = async (req, res) => {
 
         res.json({ message: 'Login successful', student: { id: student.id, email: student.email } });
     } catch (err) {
-        console.error(err);
+        logger.error(`Error during login for ${email}: ${err.message}`, { stack: err.stack });
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -63,7 +64,7 @@ export const registerStudent = async (req, res) => {
         res.status(201).json({ message: "Student registered successfully" });
 
     } catch (err) {
-        console.error(err);
+        logger.error(`Error during registration for ${email}: ${err.message}`, { stack: err.stack });
         res.status(500).json({ message: "Server error during registration" });
     }
 };
@@ -109,7 +110,7 @@ export const resetPassword = async (req, res) => {
         res.json({ message: "Password reset successfully" });
 
     } catch (err) {
-        console.error(err);
+        logger.error(`Error during password reset for ${email}: ${err.message}`, { stack: err.stack });
         res.status(500).json({ message: "Server error during password reset" });
     }
 };

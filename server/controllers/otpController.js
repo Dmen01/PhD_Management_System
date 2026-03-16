@@ -1,5 +1,15 @@
 import pool from '../db.js';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
+import logger from '../utils/logger.js';
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 // Generate a 6-digit OTP
 const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -27,13 +37,20 @@ export const send = async (req, res) => {
             [email, otp, expiresAt]
         );
 
-        // MOCK EMAIL SENDING
-        console.log(`[MOCK EMAIL] To: ${email} | Code: ${otp}`);
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Your Registration OTP',
+            text: `Your OTP for registration is: ${otp}. It will expire in 10 minutes.`
+        };
+
+        await transporter.sendMail(mailOptions);
+        logger.info(`OTP sent successfully to: ${email}`);
 
         res.json({ message: "OTP sent successfully" });
 
     } catch (err) {
-        console.error(err);
+        logger.error(`Error generating OTP for ${email}: ${err.message}`, { stack: err.stack });
         res.status(500).json({ message: "Server error generating OTP" });
     }
 };
@@ -54,7 +71,7 @@ export const verify = async (req, res) => {
         res.json({ message: "OTP verified successfully" });
 
     } catch (err) {
-        console.error(err);
+        logger.error(`Error verifying OTP for ${email}: ${err.message}`, { stack: err.stack });
         res.status(500).json({ message: "Server error verifying OTP" });
     }
 };
@@ -83,12 +100,20 @@ export const sendReset = async (req, res) => {
             [email, otp, expiresAt]
         );
 
-        console.log(`[MOCK EMAIL - RESET] To: ${email} | Code: ${otp}`);
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Your Password Reset OTP',
+            text: `Your OTP for resetting your password is: ${otp}. It will expire in 10 minutes.`
+        };
+
+        await transporter.sendMail(mailOptions);
+        logger.info(`Reset OTP sent successfully to: ${email}`);
 
         res.json({ message: "Reset OTP sent successfully" });
 
     } catch (err) {
-        console.error(err);
+        logger.error(`Error sending reset OTP to ${email}: ${err.message}`, { stack: err.stack });
         res.status(500).json({ message: "Server error sending reset OTP" });
     }
 };

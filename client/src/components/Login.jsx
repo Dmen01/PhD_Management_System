@@ -133,8 +133,8 @@ const Login = () => {
             <div className="hidden lg:flex lg:w-1/2 bg-[#2e1065] relative overflow-hidden items-center justify-center">
                  {/* Geometric Background approximation using CSS */}
                 <div className="absolute inset-0">
-                    <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
-                    <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 translate-y-1/2 -translate-x-1/2"></div>
+                    <div className="absolute top-0 right-0 w-200 h-200 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+                    <div className="absolute bottom-0 left-0 w-150 h-150 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 translate-y-1/2 -translate-x-1/2"></div>
                 </div>
 
                 {/* Geometric Shapes Grid - Abstract Representation */}
@@ -145,7 +145,7 @@ const Login = () => {
                     <div className="w-48 h-48 bg-blue-600/30 rounded-full backdrop-blur-3xl border border-white/10"></div>
                 </div>
 
-                <div className="absolute bottom-0 w-full h-1/4 bg-gradient-to-t from-[#2e1065] to-transparent z-20"></div>
+                <div className="absolute bottom-0 w-full h-1/4 bg-linear-to-t from-[#2e1065] to-transparent z-20"></div>
             </div>
         </div>
     );
