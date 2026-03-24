@@ -117,3 +117,95 @@ export const sendReset = async (req, res) => {
         res.status(500).json({ message: "Server error sending reset OTP" });
     }
 };
+
+export const sendAdmin = async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+    }
+
+    try {
+        // 1. Check if email is pre-approved
+        const approvedCheck = await pool.query('SELECT id FROM pre_approved_admins WHERE email = $1', [email]);
+        if (approvedCheck.rows.length === 0) {
+            return res.status(403).json({ message: "This email is not authorized to register as an admin" });
+        }
+        
+        // 2. Check if admin already registered
+        const userCheck = await pool.query('SELECT id FROM admin_login_details WHERE email = $1', [email]);
+        if (userCheck.rows.length > 0) {
+            return res.status(409).json({ message: "An admin account with this email already exists" });
+        }
+
+        const otp = generateCode();
+        const expiresAt = new Date(Date.now() + 10 * 60000); // 10 minutes from now
+
+        // Store OTP in DB
+        await pool.query(
+            'INSERT INTO otp_codes (email, code, expires_at) VALUES ($1, $2, $3)',
+            [email, otp, expiresAt]
+        );
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Your Admin Registration OTP',
+            text: `Your OTP for admin registration is: ${otp}. It will expire in 10 minutes.`
+        };
+
+        await transporter.sendMail(mailOptions);
+        logger.info(`Admin OTP sent successfully to: ${email}`);
+
+        res.json({ message: "OTP sent successfully" });
+
+    } catch (err) {
+        logger.error(`Error generating Admin OTP for ${email}: ${err.message}`, { stack: err.stack });
+        res.status(500).json({ message: "Server error generating OTP" });
+    }
+};
+
+export const sendTeacherOtp = async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+    }
+
+    try {
+        const approvedCheck = await pool.query('SELECT id FROM pre_approved_teachers WHERE email = $1', [email]);
+        if (approvedCheck.rows.length === 0) {
+            return res.status(403).json({ message: "This email is not authorized to register as a teacher" });
+        }
+
+        const userCheck = await pool.query('SELECT id FROM teacher_login_details WHERE email = $1', [email]);
+        if (userCheck.rows.length > 0) {
+            return res.status(409).json({ message: "A teacher account with this email already exists" });
+        }
+
+        const otp = generateCode();
+        const expiresAt = new Date(Date.now() + 10 * 60000);
+
+        await pool.query(
+            'INSERT INTO otp_codes (email, code, expires_at) VALUES ($1, $2, $3)',
+            [email, otp, expiresAt]
+        );
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Your Teacher Registration OTP',
+            text: `Your OTP for teacher registration is: ${otp}. It will expire in 10 minutes.`
+        };
+
+        await transporter.sendMail(mailOptions);
+        logger.info(`Teacher OTP sent successfully to: ${email}`);
+
+        res.json({ message: "OTP sent successfully" });
+
+    } catch (err) {
+        logger.error(`Error generating Teacher OTP for ${email}: ${err.message}`, { stack: err.stack });
+        res.status(500).json({ message: "Server error generating OTP" });
+    }
+};
+

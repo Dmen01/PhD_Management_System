@@ -22,7 +22,7 @@ const fileFilter = (req, file, cb) => {
     else cb(new Error('Only PDF files are allowed'), false);
 };
 
-export const upload = multer({ storage, fileFilter, limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB max
+export const upload = multer({ storage, fileFilter, limits: { fileSize: 2 * 1024 * 1024 } }); // 2MB max
 
 // ── Get fee detail for a specific semester ───────────────────────────────────
 export const getFeeDetail = async (req, res) => {

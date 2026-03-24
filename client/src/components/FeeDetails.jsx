@@ -68,7 +68,7 @@ const UploadForm = ({ applicationNumber, semester, onSuccess }) => {
         const f = e.target.files[0];
         if (!f) return;
         if (f.type !== 'application/pdf') { setFileError('Only PDF files are accepted'); setFile(null); return; }
-        if (f.size > 10 * 1024 * 1024) { setFileError('File size must be under 10 MB'); setFile(null); return; }
+        if (f.size > 2 * 1024 * 1024) { setFileError('File size must be under 2 MB'); setFile(null); return; }
         setFileError('');
         setFile(f);
     };
@@ -121,7 +121,7 @@ const UploadForm = ({ applicationNumber, semester, onSuccess }) => {
                         ) : (
                             <>
                                 <Upload size={22} className="text-slate-400" />
-                                <span className="text-sm text-slate-500">Click to upload PDF <span className="text-slate-400">(max 10 MB)</span></span>
+                                <span className="text-sm text-slate-500">Click to upload PDF <span className="text-slate-400">(max 2 MB)</span></span>
                             </>
                         )}
                     </div>
