@@ -91,12 +91,14 @@ export const getAssignedStudents = async (req, res) => {
         const result = await pool.query(`
             SELECT
                 sta.id,
-                sta.student_application_number,
+                sta.student_roll_no,
                 sm.first_name       AS student_first_name,
                 sm.last_name        AS student_last_name,
                 sm.email            AS student_email,
                 sm.mobile_number    AS student_mobile,
                 sm.year_of_admission,
+                sm.admission_mode,
+                sm.admission_type,
 
                 -- Mentor teacher
                 tm.teacher_id       AS mentor_teacher_id,
@@ -109,9 +111,9 @@ export const getAssignedStudents = async (req, res) => {
                 ta.email            AS assistance_email,
 
                 sta.assigned_at,
-                (EXISTS (SELECT 1 FROM student_coursework_assignments sca WHERE sca.student_application_number = sta.student_application_number)) AS has_coursework
+                (EXISTS (SELECT 1 FROM student_coursework_assignments sca WHERE sca.student_roll_no = sta.student_roll_no)) AS has_coursework
             FROM student_teacher_assignments sta
-            JOIN student_master sm ON sm.application_number = sta.student_application_number
+            JOIN student_master sm ON sm.roll_no = sta.student_roll_no
             JOIN teacher_master tm ON tm.teacher_id = sta.mentor_teacher_id
             LEFT JOIN teacher_master ta ON ta.teacher_id = sta.assistance_teacher_id
             WHERE tm.email = $1 OR ta.email = $1
@@ -129,7 +131,7 @@ export const getAssignedStudents = async (req, res) => {
 export const getCourseworkSubjects = async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT id, subject_name, credits FROM coursework_subjects ORDER BY subject_name'
+            'SELECT id, subject_name, credits FROM coursework_subjects ORDER BY LOWER(subject_name) ASC'
         );
         res.json({ subjects: result.rows });
     } catch (err) {
@@ -140,16 +142,16 @@ export const getCourseworkSubjects = async (req, res) => {
 
 // Get subjects already assigned to a particular student
 export const getStudentCoursework = async (req, res) => {
-    const { student_application_number } = req.query;
-    if (!student_application_number) return res.status(400).json({ message: 'student_application_number is required' });
+    const { student_roll_no } = req.query;
+    if (!student_roll_no) return res.status(400).json({ message: 'student_roll_no is required' });
     try {
         const result = await pool.query(`
             SELECT sca.id, sca.subject_id, cs.subject_name, cs.credits, sca.assigned_at
             FROM student_coursework_assignments sca
             JOIN coursework_subjects cs ON cs.id = sca.subject_id
-            WHERE sca.student_application_number = $1
+            WHERE sca.student_roll_no = $1
             ORDER BY cs.subject_name
-        `, [student_application_number]);
+        `, [student_roll_no]);
         res.json({ subjects: result.rows });
     } catch (err) {
         logger.error(`Error fetching student coursework: ${err.message}`, { stack: err.stack });
@@ -159,12 +161,12 @@ export const getStudentCoursework = async (req, res) => {
 
 // Assign exactly 4 subjects to a student (replaces existing assignments for that student)
 export const assignCoursework = async (req, res) => {
-    const { teacher_email, student_application_number, subject_ids } = req.body;
-    if (!teacher_email || !student_application_number || !Array.isArray(subject_ids)) {
-        return res.status(400).json({ message: 'teacher_email, student_application_number, and subject_ids array are required' });
+    const { teacher_email, student_roll_no, subject_ids } = req.body;
+    if (!teacher_email || !student_roll_no || !Array.isArray(subject_ids)) {
+        return res.status(400).json({ message: 'teacher_email, student_roll_no, and subject_ids array are required' });
     }
-    if (subject_ids.length !== 4) {
-        return res.status(400).json({ message: 'You must select exactly 4 subjects' });
+    if (subject_ids.length === 0 || subject_ids.length > 4) {
+        return res.status(400).json({ message: 'You must select between 1 and 4 subjects' });
     }
 
     const client = await pool.connect();
@@ -183,17 +185,17 @@ export const assignCoursework = async (req, res) => {
 
         // Delete existing assignments for this student
         await client.query(
-            'DELETE FROM student_coursework_assignments WHERE student_application_number = $1',
-            [student_application_number]
+            'DELETE FROM student_coursework_assignments WHERE student_roll_no = $1',
+            [student_roll_no]
         );
 
         // Insert new ones
         for (const subject_id of subject_ids) {
             await client.query(
                 `INSERT INTO student_coursework_assignments
-                 (student_application_number, subject_id, assigned_by_teacher_id)
+                 (student_roll_no, subject_id, assigned_by_teacher_id)
                  VALUES ($1, $2, $3)`,
-                [student_application_number, subject_id, teacher_id]
+                [student_roll_no, subject_id, teacher_id]
             );
         }
 
@@ -201,7 +203,7 @@ export const assignCoursework = async (req, res) => {
         res.json({ message: 'Coursework subjects assigned successfully' });
     } catch (err) {
         await client.query('ROLLBACK');
-        logger.error(`Error assigning coursework for ${student_application_number}: ${err.message}`, { stack: err.stack });
+        logger.error(`Error assigning coursework for ${student_roll_no}: ${err.message}`, { stack: err.stack });
         res.status(500).json({ message: 'Server error' });
     } finally {
         client.release();

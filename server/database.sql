@@ -18,9 +18,10 @@ CREATE TABLE student_login_details (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Full student profile — filled once after first login
-CREATE TABLE student_master (
-  application_number VARCHAR(50) PRIMARY KEY,
+-- Pending student registrations awaiting admin approval
+CREATE TABLE pending_student_registrations (
+  id SERIAL PRIMARY KEY,
+  roll_no VARCHAR(50) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   first_name VARCHAR(100) NOT NULL,
   middle_name VARCHAR(100),
@@ -29,6 +30,25 @@ CREATE TABLE student_master (
   mother_name VARCHAR(200) NOT NULL,
   dob DATE NOT NULL,
   mobile_number VARCHAR(15) NOT NULL CHECK (mobile_number ~ '^[0-9]{10,15}$'),
+  admission_mode VARCHAR(50) NOT NULL,
+  admission_type VARCHAR(50) NOT NULL,
+  year_of_admission INTEGER NOT NULL CHECK (year_of_admission >= 1900 AND year_of_admission <= 2100),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Full student profile — moved here after admin verification
+CREATE TABLE student_master (
+  roll_no VARCHAR(50) PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  first_name VARCHAR(100) NOT NULL,
+  middle_name VARCHAR(100),
+  last_name VARCHAR(100) NOT NULL,
+  father_name VARCHAR(200) NOT NULL,
+  mother_name VARCHAR(200) NOT NULL,
+  dob DATE NOT NULL,
+  mobile_number VARCHAR(15) NOT NULL CHECK (mobile_number ~ '^[0-9]{10,15}$'),
+  admission_mode VARCHAR(50) NOT NULL,
+  admission_type VARCHAR(50) NOT NULL,
   year_of_admission INTEGER NOT NULL CHECK (year_of_admission >= 1900 AND year_of_admission <= 2100),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -36,13 +56,13 @@ CREATE TABLE student_master (
 -- Fee payment records — one per student per semester, student cannot edit after submission
 CREATE TABLE fee_details (
   id SERIAL PRIMARY KEY,
-  application_number VARCHAR(50) NOT NULL REFERENCES student_master(application_number) ON DELETE CASCADE,
-  semester INTEGER NOT NULL CHECK (semester >= 1 AND semester <= 12),
+  roll_no VARCHAR(50) NOT NULL REFERENCES student_master(roll_no) ON DELETE CASCADE,
+  semester INTEGER NOT NULL CHECK (semester >= 1 AND semester <= 16),
   payment_date DATE NOT NULL,
   receipt_pdf_path VARCHAR(500) NOT NULL,
   verified_by_student BOOLEAN NOT NULL DEFAULT FALSE,
   submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(application_number, semester)
+  UNIQUE(roll_no, semester)
 );
 
 -- Stores emails authorized to register as admins
@@ -87,6 +107,7 @@ CREATE TABLE IF NOT EXISTS coursework_subjects (
   id SERIAL PRIMARY KEY,
   subject_name VARCHAR(255) UNIQUE NOT NULL,
   credits INTEGER NOT NULL CHECK (credits > 0),
+  syllabus_pdf_path VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -101,28 +122,47 @@ CREATE TABLE IF NOT EXISTS pre_approved_teachers (
 -- Maps each student to their mentor (required) and assistance teacher (optional)
 CREATE TABLE IF NOT EXISTS student_teacher_assignments (
   id SERIAL PRIMARY KEY,
-  student_application_number VARCHAR(50) NOT NULL REFERENCES student_master(application_number) ON DELETE CASCADE,
+  student_roll_no VARCHAR(50) NOT NULL REFERENCES student_master(roll_no) ON DELETE CASCADE,
   mentor_teacher_id VARCHAR(50) NOT NULL REFERENCES teacher_master(teacher_id) ON DELETE RESTRICT,
   assistance_teacher_id VARCHAR(50) REFERENCES teacher_master(teacher_id) ON DELETE SET NULL,
   assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(student_application_number)
+  UNIQUE(student_roll_no)
 );
 
 -- Pre-PhD coursework subjects assigned by the mentor teacher to each student (max 4)
 CREATE TABLE IF NOT EXISTS student_coursework_assignments (
   id SERIAL PRIMARY KEY,
-  student_application_number VARCHAR(50) NOT NULL REFERENCES student_master(application_number) ON DELETE CASCADE,
+  student_roll_no VARCHAR(50) NOT NULL REFERENCES student_master(roll_no) ON DELETE CASCADE,
   subject_id INTEGER NOT NULL REFERENCES coursework_subjects(id) ON DELETE RESTRICT,
   assigned_by_teacher_id VARCHAR(50) NOT NULL REFERENCES teacher_master(teacher_id) ON DELETE RESTRICT,
   assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(student_application_number, subject_id)
+  UNIQUE(student_roll_no, subject_id)
 );
 
 -- Pre-PhD Results uploaded by the student
 CREATE TABLE IF NOT EXISTS pre_phd_results (
   id SERIAL PRIMARY KEY,
-  application_number VARCHAR(50) UNIQUE NOT NULL REFERENCES student_master(application_number) ON DELETE CASCADE,
+  roll_no VARCHAR(50) UNIQUE NOT NULL REFERENCES student_master(roll_no) ON DELETE CASCADE,
   result_pdf_path VARCHAR(500) NOT NULL,
   verified_by_student BOOLEAN NOT NULL DEFAULT FALSE,
   submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- PhD Registration Presentations
+CREATE TABLE IF NOT EXISTS phd_registration_presentations (
+  id SERIAL PRIMARY KEY,
+  roll_no VARCHAR(50) NOT NULL REFERENCES student_master(roll_no) ON DELETE CASCADE,
+  synopsis_pdf_path VARCHAR(500) NOT NULL,
+  presentation_date DATE NOT NULL,
+  observation_message TEXT,
+  remark VARCHAR(50) NOT NULL CHECK (remark IN ('Accepted', 'Rejected')),
+  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- PhD Registration Letters
+CREATE TABLE IF NOT EXISTS phd_registration_letters (
+  id SERIAL PRIMARY KEY,
+  roll_no VARCHAR(50) UNIQUE NOT NULL REFERENCES student_master(roll_no) ON DELETE CASCADE,
+  letter_pdf_path VARCHAR(500) NOT NULL,
+  registration_number VARCHAR(100) NOT NULL,
+  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

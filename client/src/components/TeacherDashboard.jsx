@@ -1,8 +1,133 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, LogOut, ChevronDown, User, Mail, Phone, Building2, Award, Calendar, Hash, Loader2, Lock, Eye, EyeOff, ShieldCheck, X, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { BookOpen, LogOut, ChevronDown, User, Mail, Phone, Building2, Award, Calendar, Hash, Loader2, Lock, Eye, EyeOff, ShieldCheck, X, GraduationCap, CheckCircle2, ExternalLink, Bell, ChevronUp, FileText } from 'lucide-react';
 import TeacherRegistrationModal from './TeacherRegistrationModal';
+
+// ── Notification Bell Panel ───────────────────────────────────────────────────────
+const NotificationBell = ({ fetchUrl, accentColor = 'amber' }) => {
+    const [open, setOpen] = React.useState(false);
+    const [notifications, setNotifications] = React.useState([]);
+    const [loading, setLoading] = React.useState(false);
+    const [prevExpanded, setPrevExpanded] = React.useState(false);
+    const [unreadCount, setUnreadCount] = React.useState(0);
+
+    const loadNotifications = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(fetchUrl);
+            const data = await res.json();
+            if (res.ok) { setNotifications(data.notifications); setUnreadCount(data.notifications.length); }
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
+    };
+
+    const togglePanel = () => { setOpen(o => !o); if (!open) loadNotifications(); };
+
+    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const recent = notifications.filter(n => new Date(n.created_at) >= cutoff);
+    const previous = notifications.filter(n => new Date(n.created_at) < cutoff);
+
+    const colors = {
+        amber: { badge: 'bg-amber-500', header: 'bg-slate-900 border-amber-900/50', accent: 'text-amber-400' },
+        blue:  { badge: 'bg-blue-500',  header: 'bg-slate-900 border-blue-900/50',  accent: 'text-blue-400'  },
+    }[accentColor];
+
+    const NotifCard = ({ n }) => (
+        <div className="bg-slate-800/70 border border-slate-700/60 rounded-xl p-3.5 space-y-2">
+            <p className="text-sm text-slate-200 leading-relaxed">{n.message}</p>
+            <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                <span className="text-xs text-slate-500">{new Date(n.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                {n.pdf_path && (
+                    <a href={`http://localhost:5001/${n.pdf_path}`} target="_blank" rel="noopener noreferrer"
+                        className={`flex items-center space-x-1 text-xs ${colors.accent} hover:opacity-80 transition-opacity`}>
+                        <FileText size={11} /><span>View Attachment</span><ExternalLink size={9} />
+                    </a>
+                )}
+            </div>
+        </div>
+    );
+
+    return (
+        <>
+            <button onClick={togglePanel}
+                className="relative w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all border border-white/20">
+                <Bell size={18} className="text-white" />
+                {unreadCount > 0 && !open && (
+                    <span className={`absolute -top-1 -right-1 min-w-[18px] ${colors.badge} rounded-full text-[10px] font-bold text-white flex items-center justify-center px-1`}>
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                )}
+            </button>
+
+            <AnimatePresence>
+                {open && (
+                    <>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={() => setOpen(false)} />
+                        <motion.div
+                            initial={{ x: '100%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '100%', opacity: 0 }}
+                            transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+                            className={`fixed right-0 top-0 h-full w-full max-w-sm z-50 flex flex-col border-l ${colors.header} shadow-2xl`}
+                        >
+                            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+                                <div className="flex items-center space-x-2">
+                                    <Bell size={16} className={colors.accent} />
+                                    <h2 className="text-base font-bold text-white">Notifications</h2>
+                                    {notifications.length > 0 && (
+                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${colors.badge} text-white`}>{notifications.length}</span>
+                                    )}
+                                </div>
+                                <button onClick={() => setOpen(false)}
+                                    className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                                {loading ? (
+                                    <div className="flex items-center justify-center py-16 space-x-2 text-slate-500">
+                                        <Loader2 size={20} className="animate-spin" /><span className="text-sm">Loading...</span>
+                                    </div>
+                                ) : notifications.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-16 text-slate-600 space-y-2">
+                                        <Bell size={36} className="opacity-30" />
+                                        <p className="text-sm">No notifications yet.</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {recent.length > 0 && (
+                                            <div className="space-y-2">
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Recent — Last 7 Days</p>
+                                                {recent.map(n => <NotifCard key={n.id} n={n} />)}
+                                            </div>
+                                        )}
+                                        {previous.length > 0 && (
+                                            <div className="mt-2">
+                                                <button onClick={() => setPrevExpanded(p => !p)}
+                                                    className="flex items-center space-x-1.5 text-xs text-slate-500 hover:text-slate-300 font-semibold uppercase tracking-widest transition-colors w-full">
+                                                    {prevExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                                    <span>Previous ({previous.length})</span>
+                                                </button>
+                                                <AnimatePresence>
+                                                    {prevExpanded && (
+                                                        <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
+                                                            <div className="space-y-2 mt-2">{previous.map(n => <NotifCard key={n.id} n={n} />)}</div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+        </>
+    );
+};
 
 const NAV = [
     { id: 'profile',   label: 'My Profile',   icon: User },
@@ -117,7 +242,7 @@ const TeacherProfile = ({ profile, email }) => {
                     <InfoRow icon={Building2} label="Department"      value={profile.department} />
                     <InfoRow icon={Award}     label="Designation"     value={profile.designation} />
                     <InfoRow icon={Calendar}  label="Year of Joining" value={profile.year_of_joining} />
-                    <InfoRow icon={Calendar}  label="Registered On"   value={new Date(profile.created_at).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })} />
+                    <InfoRow icon={Calendar}  label="Registered On"   value={new Date(profile.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} />
                 </div>
             </div>
 
@@ -268,11 +393,178 @@ const ChangePassword = ({ email, onSuccess }) => {
     );
 };
 
+// ── Accordion Tab Helper ──────────────────────────────────────────────────────
+const AccordionTab = ({ title, isOpen, onToggle, badge, children }) => (
+    <div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+        <button type="button" onClick={onToggle} className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-slate-50 transition-colors">
+            <div className="flex items-center space-x-3">
+                <span className="text-sm font-semibold text-slate-700">{title}</span>
+                {badge && <span className="text-[10px] font-bold text-slate-400 bg-slate-200 px-2 py-0.5 rounded-full uppercase tracking-wide">{badge}</span>}
+            </div>
+            <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                <ChevronDown size={16} className="text-slate-400 group-hover:text-amber-500 transition-colors" />
+            </motion.div>
+        </button>
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                    <div className="p-4 border-t border-slate-100 bg-slate-50/50">{children}</div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    </div>
+);
+
+// ── Teacher Fee Viewer Sub-component ──────────────────────────────────────────
+const TeacherFeeViewer = ({ rollNo, admissionYear }) => {
+    const [semester, setSemester] = useState('');
+    const [feeData, setFeeData] = useState(null);
+    const [fetching, setFetching] = useState(false);
+    const [noRecord, setNoRecord] = useState(false);
+
+    const SEMESTERS = Array.from({ length: 16 }, (_, i) => i + 1);
+
+    const formatSemester = (semInt) => {
+        if (!semInt) return '';
+        if (!admissionYear) return `Semester ${semInt}`;
+        const year = admissionYear + Math.floor((semInt - 1) / 2);
+        const roman = (semInt % 2 === 1) ? 'I' : 'II';
+        return `${year}-${roman}`;
+    };
+
+    const fetchFeeData = async (sem) => {
+        setSemester(sem);
+        if (!rollNo) return;
+        setFetching(true);
+        setFeeData(null);
+        setNoRecord(false);
+        try {
+            const res = await fetch(`http://localhost:5001/api/fee?rollNo=${rollNo}&semester=${sem}`);
+            if (res.ok) {
+                const d = await res.json();
+                setFeeData(d.fee);
+                setNoRecord(false);
+            } else if (res.status === 404) {
+                setFeeData(null);
+                setNoRecord(true);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setFetching(false);
+        }
+    };
+
+    return (
+        <div className="w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Select Half-Year</span>
+                <select
+                    value={semester}
+                    onChange={(e) => fetchFeeData(Number(e.target.value))}
+                    className="h-9 px-3 rounded-lg border border-slate-300 text-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all outline-none bg-white text-slate-700"
+                >
+                    <option value="" disabled>Select half-year...</option>
+                    {SEMESTERS.map(s => (
+                        <option key={s} value={s}>{formatSemester(s)}</option>
+                    ))}
+                </select>
+            </div>
+            
+            <div className="bg-white rounded-lg p-3 border border-slate-200 shadow-sm min-h-[80px] flex items-center justify-center text-sm">
+                {fetching ? (
+                    <span className="text-slate-400 animate-pulse flex items-center space-x-2"><Loader2 size={16} className="animate-spin" /><span>Fetching...</span></span>
+                ) : feeData ? (
+                    <div className="w-full flex items-center justify-between">
+                        <div className="flex flex-col">
+                            <span className="text-xs text-slate-400">Payment Date</span>
+                            <span className="font-semibold text-slate-700">{new Date(feeData.payment_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                        </div>
+                        <a
+                            href={`http://localhost:5001/${feeData.receipt_pdf_path}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-semibold px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition flex items-center"
+                        >
+                            View Receipt <ExternalLink size={12} className="ml-1.5" />
+                        </a>
+                    </div>
+                ) : noRecord ? (
+                    <span className="text-slate-400 py-3 italic">No fee uploaded for {formatSemester(semester)}</span>
+                ) : (
+                    <span className="text-slate-400 py-3 italic">Select a half-year to view fee receipts</span>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ── Teacher Coursework Result Viewer Sub-component ────────────────────────────
+const TeacherCourseworkResultViewer = ({ rollNo }) => {
+    const [resultData, setResultData] = useState(null);
+    const [fetching, setFetching] = useState(true);
+
+    useEffect(() => {
+        const fetchResult = async () => {
+            if (!rollNo) return;
+            try {
+                const res = await fetch(`http://localhost:5001/api/student/result?roll_no=${encodeURIComponent(rollNo)}`);
+                if (res.ok) {
+                    const d = await res.json();
+                    setResultData(d.result);
+                } else if (res.status === 404) {
+                    setResultData(null);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setFetching(false);
+            }
+        };
+        fetchResult();
+    }, [rollNo]);
+
+    return (
+        <div className="bg-white rounded-lg p-3 border border-slate-200 shadow-sm min-h-[80px] flex flex-col justify-center text-sm w-full gap-2">
+            {fetching ? (
+                <span className="text-slate-400 animate-pulse flex items-center space-x-2"><Loader2 size={16} className="animate-spin" /><span>Fetching...</span></span>
+            ) : resultData ? (
+                <>
+                    <div className="flex items-center justify-between">
+                        <div className="flex flex-col">
+                            <span className="text-xs text-slate-400">Upload Date</span>
+                            <span className="font-semibold text-slate-700">{new Date(resultData.submitted_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                        </div>
+                        <a
+                            href={`http://localhost:5001/${resultData.result_pdf_path}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-semibold px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition flex items-center"
+                        >
+                            View Result <ExternalLink size={12} className="ml-1.5" />
+                        </a>
+                    </div>
+                    <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold ${resultData.verified_by_admin ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}`}>
+                        {resultData.verified_by_admin ? (
+                            <><CheckCircle2 size={13} /><span>Admin Verified</span></>
+                        ) : (
+                            <><span>⏳</span><span>Pending Admin Review</span></>
+                        )}
+                    </div>
+                </>
+            ) : (
+                <span className="text-slate-400 py-3 italic">Coursework result not uploaded yet</span>
+            )}
+        </div>
+    );
+};
+
 // ── My Students Panel ─────────────────────────────────────────────────────
 const MyStudents = ({ email }) => {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [openIds, setOpenIds] = useState({});
+    const [activeTabs, setActiveTabs] = useState({});
     const [assigningCourseworkTo, setAssigningCourseworkTo] = useState(null); // student object
 
     useEffect(() => {
@@ -291,17 +583,13 @@ const MyStudents = ({ email }) => {
     }, [email]);
 
     const toggle = (id) => setOpenIds(prev => ({ ...prev, [id]: !prev[id] }));
+    const toggleTab = (studentId, tabId) => setActiveTabs(prev => ({ ...prev, [studentId]: prev[studentId] === tabId ? null : tabId }));
 
-    // Use the first row to determine the pair info (all rows share same mentor/assistance)
+    // Use the first row to determine the pair info (all rows share same mentor/assistant mentor)
     const pairInfo = students[0] ?? null;
     const isMentor = pairInfo && pairInfo.mentor_email === email;
 
-    const ComingSoonBadge = ({ label }) => (
-        <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-slate-100 bg-slate-50">
-            <span className="text-sm text-slate-500 font-medium">{label}</span>
-            <span className="text-[10px] font-bold text-slate-400 bg-slate-200 px-2 py-0.5 rounded-full uppercase tracking-wide">Coming Soon</span>
-        </div>
-    );
+
 
     return (
         <div className="space-y-5">
@@ -331,7 +619,7 @@ const MyStudents = ({ email }) => {
                                     <User size={15} className="text-slate-400" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Assistance Teacher</p>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Assistant Mentor</p>
                                     <p className="text-sm font-semibold text-slate-200">{pairInfo.assistance_name}</p>
                                     <p className="text-xs text-slate-500">{pairInfo.assistance_email}</p>
                                 </div>
@@ -375,7 +663,7 @@ const MyStudents = ({ email }) => {
                                         </div>
                                         <div>
                                             <p className="text-sm font-semibold text-slate-800">{name}</p>
-                                            <p className="text-xs text-slate-400 font-mono">{s.student_application_number}</p>
+                                            <p className="text-xs text-slate-400 font-mono">{s.student_roll_no}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center space-x-3 shrink-0">
@@ -405,38 +693,61 @@ const MyStudents = ({ email }) => {
                                             transition={{ duration: 0.2 }}
                                             className="overflow-hidden"
                                         >
-                                            <div className="border-t border-slate-100 px-5 py-4 space-y-4 bg-slate-50/60">
+                                            <div className="border-t border-slate-100 px-5 py-4 space-y-3 bg-slate-50/60">
 
-                                                {/* Contact Details */}
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Contact Details</p>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                        <div className="flex items-center space-x-3 bg-white border border-slate-200 rounded-xl px-4 py-2.5">
-                                                            <Mail size={14} className="text-amber-500 shrink-0" />
-                                                            <div>
-                                                                <p className="text-[10px] text-slate-400 font-medium">Email</p>
-                                                                <p className="text-xs font-semibold text-slate-700">{s.student_email}</p>
+                                                <AccordionTab 
+                                                    title="Contact & Admission Details" 
+                                                    isOpen={activeTabs[s.id] === 'profile'} 
+                                                    onToggle={() => toggleTab(s.id, 'profile')}
+                                                >
+                                                    <div className="space-y-4">
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                            <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-2.5">
+                                                                <div className="flex items-center space-x-2"><Mail size={14} className="text-amber-500" /><span className="text-[10px] text-slate-400 font-medium">Email</span></div>
+                                                                <span className="text-xs font-semibold text-slate-700 break-all pl-2 text-right">{s.student_email}</span>
+                                                            </div>
+                                                            <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-2.5">
+                                                                <div className="flex items-center space-x-2"><Phone size={14} className="text-amber-500" /><span className="text-[10px] text-slate-400 font-medium">Mobile</span></div>
+                                                                <span className="text-xs font-semibold text-slate-700">{s.student_mobile}</span>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center space-x-3 bg-white border border-slate-200 rounded-xl px-4 py-2.5">
-                                                            <Phone size={14} className="text-amber-500 shrink-0" />
-                                                            <div>
-                                                                <p className="text-[10px] text-slate-400 font-medium">Mobile</p>
-                                                                <p className="text-xs font-semibold text-slate-700">{s.student_mobile}</p>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                            <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-2.5">
+                                                                <span className="text-[10px] text-slate-400 font-medium">Admission Mode</span>
+                                                                <span className="text-xs font-semibold text-slate-700">{s.admission_mode || '—'}</span>
+                                                            </div>
+                                                            <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-2.5">
+                                                                <span className="text-[10px] text-slate-400 font-medium">Admission Type</span>
+                                                                <span className="text-xs font-semibold text-slate-700">{s.admission_type || '—'}</span>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </AccordionTab>
 
-                                                {/* Placeholder sections */}
-                                                <div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Academic Records</p>
-                                                    <div className="space-y-2">
-                                                        <ComingSoonBadge label="Fee Details (per semester)" />
-                                                        <ComingSoonBadge label="Pre-PhD Coursework Results" />
-                                                        <ComingSoonBadge label="Progress Reports" />
-                                                    </div>
-                                                </div>
+                                                <AccordionTab 
+                                                    title="Fee Details" 
+                                                    isOpen={activeTabs[s.id] === 'fee'} 
+                                                    onToggle={() => toggleTab(s.id, 'fee')}
+                                                >
+                                                    <TeacherFeeViewer rollNo={s.student_roll_no} admissionYear={s.year_of_admission} />
+                                                </AccordionTab>
+
+                                                <AccordionTab 
+                                                    title="Pre-PhD Coursework Results" 
+                                                    isOpen={activeTabs[s.id] === 'coursework'} 
+                                                    onToggle={() => toggleTab(s.id, 'coursework')}
+                                                >
+                                                    <TeacherCourseworkResultViewer rollNo={s.student_roll_no} />
+                                                </AccordionTab>
+
+                                                <AccordionTab 
+                                                    title="Progress Reports" 
+                                                    isOpen={activeTabs[s.id] === 'progress'} 
+                                                    onToggle={() => toggleTab(s.id, 'progress')}
+                                                    badge="Coming Soon"
+                                                >
+                                                    <p className="text-sm text-slate-500 text-center py-2 italic cursor-crosshair">Module in development</p>
+                                                </AccordionTab>
 
                                             </div>
                                         </motion.div>
@@ -479,7 +790,7 @@ const AssignCourseworkModal = ({ student, teacherEmail, onClose }) => {
                 if (subRes.ok) setAvailableSubjects(subData.subjects);
 
                 // Fetch currently assigned subjects
-                const curRes = await fetch(`http://localhost:5001/api/teacher/student-coursework?student_application_number=${encodeURIComponent(student.student_application_number)}`);
+                const curRes = await fetch(`http://localhost:5001/api/teacher/student-coursework?student_roll_no=${encodeURIComponent(student.student_roll_no)}`);
                 const curData = await curRes.json();
                 if (curRes.ok) {
                     setAssignedSubjects(curData.subjects);
@@ -493,7 +804,7 @@ const AssignCourseworkModal = ({ student, teacherEmail, onClose }) => {
             }
         };
         fetchTargets();
-    }, [student.student_application_number]);
+    }, [student.student_roll_no]);
 
     const toggleSubject = (id) => {
         if (selectedIds.includes(id)) {
@@ -509,9 +820,14 @@ const AssignCourseworkModal = ({ student, teacherEmail, onClose }) => {
     };
 
     const handleSave = async () => {
-        if (selectedIds.length !== 4) {
-            setError('Please select exactly 4 subjects.');
+        if (selectedIds.length === 0 || selectedIds.length > 4) {
+            setError('Please select between 1 and 4 subjects.');
             return;
+        }
+        if (selectedIds.length < 4) {
+            if (!window.confirm(`You have selected only ${selectedIds.length} subject(s). Are you sure you want to assign fewer than 4 subjects?`)) {
+                return;
+            }
         }
         setSubmitting(true);
         setError('');
@@ -521,7 +837,7 @@ const AssignCourseworkModal = ({ student, teacherEmail, onClose }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     teacher_email: teacherEmail,
-                    student_application_number: student.student_application_number,
+                    student_roll_no: student.student_roll_no,
                     subject_ids: selectedIds
                 })
             });
@@ -545,13 +861,13 @@ const AssignCourseworkModal = ({ student, teacherEmail, onClose }) => {
             <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden"
+                className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden"
             >
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div>
                         <h3 className="text-lg font-bold text-slate-800">Assign Coursework</h3>
-                        <p className="text-xs text-slate-500 font-medium">For {student.student_first_name} {student.student_last_name} ({student.student_application_number})</p>
+                        <p className="text-xs text-slate-500 font-medium">For {student.student_first_name} {student.student_last_name} ({student.student_roll_no})</p>
                     </div>
                     <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
                         <X size={18} />
@@ -568,7 +884,7 @@ const AssignCourseworkModal = ({ student, teacherEmail, onClose }) => {
                     ) : !isEditing ? (
                         <div className="space-y-4">
                             <p className="text-sm font-semibold text-slate-700">Currently Assigned Coursework</p>
-                            <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 max-h-64 overflow-y-auto pr-2">
                                 {assignedSubjects.length === 0 ? (
                                     <p className="text-sm text-slate-500 italic text-center py-4">No subjects currently assigned.</p>
                                 ) : (
@@ -597,14 +913,14 @@ const AssignCourseworkModal = ({ student, teacherEmail, onClose }) => {
                         <div className="space-y-5">
                             <div className="flex items-center justify-between">
                                 <p className="text-sm font-semibold text-slate-700">Select Subjects</p>
-                                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${selectedIds.length === 4 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
+                                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${selectedIds.length > 0 && selectedIds.length <= 4 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
                                     {selectedIds.length} / 4 Selected
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-1">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto p-1">
                                 {availableSubjects.length === 0 ? (
-                                    <p className="col-span-2 text-sm text-slate-500 italic py-4 text-center">No subjects available in the master database.</p>
+                                    <p className="col-span-2 text-sm text-slate-500 italic py-4 text-center">No subjects available.</p>
                                 ) : (
                                     availableSubjects.map(sub => {
                                         const isSelected = selectedIds.includes(sub.id);
@@ -678,7 +994,7 @@ const TeacherDashboard = () => {
     const [profileLoading, setProfileLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
-    const teacherEmail = localStorage.getItem('teacherEmail') || '';
+    const teacherEmail = sessionStorage.getItem('teacherEmail') || '';
 
     const loadProfile = async () => {
         if (!teacherEmail) return;
@@ -706,7 +1022,7 @@ const TeacherDashboard = () => {
     };
 
     const logout = () => {
-        localStorage.removeItem('teacherEmail');
+        sessionStorage.removeItem('teacherEmail');
         navigate('/login/teacher');
     };
 
@@ -792,7 +1108,7 @@ const TeacherDashboard = () => {
                 <div className="bg-gradient-to-r from-amber-900/60 to-slate-800 mx-6 mt-6 rounded-2xl p-6 flex items-center justify-between shadow-lg border border-amber-800/30 overflow-hidden relative">
                     <div className="relative z-10">
                         <p className="text-amber-400 text-xs font-medium mb-1">
-                            {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                         </p>
                         <h1 className="text-2xl font-bold text-white">
                             {profile ? `Welcome, ${profile.first_name}!` : 'Welcome, Faculty!'}
@@ -803,8 +1119,14 @@ const TeacherDashboard = () => {
                     </div>
                     <div className="absolute right-0 top-0 w-48 h-48 bg-amber-500/5 rounded-full -translate-y-1/2 translate-x-1/4" />
                     <div className="absolute right-20 bottom-0 w-28 h-28 bg-amber-500/5 rounded-full translate-y-1/2" />
-                    <div className="relative z-10 hidden md:flex items-center justify-center w-20 h-20 bg-amber-600/20 border border-amber-600/30 rounded-2xl backdrop-blur-sm">
-                        <BookOpen size={36} className="text-amber-400" />
+                    <div className="relative z-10 flex items-center space-x-3">
+                        <NotificationBell
+                            fetchUrl="http://localhost:5001/api/notifications/teacher"
+                            accentColor="amber"
+                        />
+                        <div className="hidden md:flex items-center justify-center w-20 h-20 bg-amber-600/20 border border-amber-600/30 rounded-2xl backdrop-blur-sm">
+                            <BookOpen size={36} className="text-amber-400" />
+                        </div>
                     </div>
                 </div>
 

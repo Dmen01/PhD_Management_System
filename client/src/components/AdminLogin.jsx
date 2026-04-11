@@ -27,7 +27,7 @@ const AdminLogin = () => {
             });
             const data = await res.json();
             if (res.ok) {
-                localStorage.setItem('adminEmail', email);
+                sessionStorage.setItem('adminEmail', email);
                 // Placeholder navigation for now
                 navigate('/dashboard/admin');
             } else {

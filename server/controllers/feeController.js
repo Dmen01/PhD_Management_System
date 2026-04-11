@@ -11,9 +11,9 @@ const storage = multer.diskStorage({
         cb(null, dir);
     },
     filename: (req, file, cb) => {
-        const { applicationNumber, semester } = req.body;
+        const { rollNo, semester } = req.body;
         const ext = path.extname(file.originalname);
-        cb(null, `${applicationNumber}_sem${semester}_${Date.now()}${ext}`);
+        cb(null, `${rollNo}_sem${semester}_${Date.now()}${ext}`);
     }
 });
 
@@ -26,14 +26,14 @@ export const upload = multer({ storage, fileFilter, limits: { fileSize: 2 * 1024
 
 // ── Get fee detail for a specific semester ───────────────────────────────────
 export const getFeeDetail = async (req, res) => {
-    const { applicationNumber, semester } = req.query;
-    if (!applicationNumber || !semester) {
-        return res.status(400).json({ message: 'applicationNumber and semester are required' });
+    const { rollNo, semester } = req.query;
+    if (!rollNo || !semester) {
+        return res.status(400).json({ message: 'rollNo and semester are required' });
     }
     try {
         const result = await pool.query(
-            'SELECT * FROM fee_details WHERE application_number = $1 AND semester = $2',
-            [applicationNumber, parseInt(semester)]
+            'SELECT * FROM fee_details WHERE roll_no = $1 AND semester = $2',
+            [rollNo, parseInt(semester)]
         );
         if (result.rows.length === 0) return res.status(404).json({ message: 'No fee record found' });
         res.json({ fee: result.rows[0] });
@@ -45,11 +45,11 @@ export const getFeeDetail = async (req, res) => {
 
 // ── Upload fee receipt (student — one time per semester) ─────────────────────
 export const uploadFeeReceipt = async (req, res) => {
-    const { applicationNumber, semester, paymentDate, verifiedByStudent } = req.body;
+    const { rollNo, semester, paymentDate, verifiedByStudent } = req.body;
 
     if (!req.file) return res.status(400).json({ message: 'PDF receipt is required' });
-    if (!applicationNumber || !semester || !paymentDate) {
-        return res.status(400).json({ message: 'applicationNumber, semester, and paymentDate are required' });
+    if (!rollNo || !semester || !paymentDate) {
+        return res.status(400).json({ message: 'rollNo, semester, and paymentDate are required' });
     }
     if (verifiedByStudent !== 'true') {
         return res.status(400).json({ message: 'You must verify the details before submitting' });
@@ -58,8 +58,8 @@ export const uploadFeeReceipt = async (req, res) => {
     try {
         // Block re-upload — student cannot overwrite once submitted
         const existing = await pool.query(
-            'SELECT id FROM fee_details WHERE application_number = $1 AND semester = $2',
-            [applicationNumber, parseInt(semester)]
+            'SELECT id FROM fee_details WHERE roll_no = $1 AND semester = $2',
+            [rollNo, parseInt(semester)]
         );
         if (existing.rows.length > 0) {
             fs.unlinkSync(req.file.path); // remove the just-uploaded file since we won't use it
@@ -67,9 +67,9 @@ export const uploadFeeReceipt = async (req, res) => {
         }
 
         await pool.query(
-            `INSERT INTO fee_details (application_number, semester, payment_date, receipt_pdf_path, verified_by_student)
+            `INSERT INTO fee_details (roll_no, semester, payment_date, receipt_pdf_path, verified_by_student)
              VALUES ($1, $2, $3, $4, $5)`,
-            [applicationNumber, parseInt(semester), paymentDate, req.file.path, true]
+            [rollNo, parseInt(semester), paymentDate, req.file.path, true]
         );
         res.status(201).json({ message: 'Fee receipt uploaded successfully' });
     } catch (err) {

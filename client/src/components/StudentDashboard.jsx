@@ -1,25 +1,149 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, CreditCard, BookOpen, ChevronDown, ClipboardList, BarChart2, LogOut, GraduationCap, Loader2, BookMarked, Users, Mail, Phone, Building2, Upload, FileText, Calendar, CheckSquare, Square, CheckCircle, ExternalLink } from 'lucide-react';
+import { User, CreditCard, BookOpen, ChevronDown, ClipboardList, BarChart2, LogOut, GraduationCap, Loader2, BookMarked, Users, Mail, Phone, Building2, Upload, FileText, Calendar, CheckSquare, Square, CheckCircle, ExternalLink, Lock, Bell, X, ChevronUp, Target, LayoutList } from 'lucide-react';
 import StudentRegistrationModal from './StudentRegistrationModal';
 import StudentProfile from './StudentProfile';
 import FeeDetails from './FeeDetails';
+import { StudentSacMembersPanel, StudentPhdPresentationPanel, StudentPhdLetterPanel } from './StudentPhdPanels';
 
-// ── Sidebar nav config ────────────────────────────────────────────────────────
-const NAV = [
-    { id: 'profile',  label: 'Profile',     icon: User },
-    { id: 'fee',      label: 'Fee Details', icon: CreditCard },
-    { id: 'mentors',  label: 'My Mentors',  icon: Users },
-    {
-        id: 'prephd', label: 'Pre-PhD', icon: BookOpen,
-        children: [
-            { id: 'prephd-coursework', label: 'Pre-PhD Coursework', icon: ClipboardList },
-            { id: 'prephd-result',     label: 'Pre-PhD Result',     icon: BarChart2 },
-        ]
-    },
-];
+// ── Reusable Notification Bell Panel ───────────────────────────────────────
+const NotificationBell = ({ fetchUrl, accentColor = 'blue' }) => {
+    const [open, setOpen] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [prevExpanded, setPrevExpanded] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
 
+    const loadNotifications = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(fetchUrl);
+            const data = await res.json();
+            if (res.ok) {
+                setNotifications(data.notifications);
+                // Count unread: all notifications since we have no read-tracking (show total for now)
+                setUnreadCount(data.notifications.length);
+            }
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
+    };
+
+    const togglePanel = () => {
+        setOpen(o => !o);
+        if (!open) loadNotifications();
+    };
+
+    const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const recent = notifications.filter(n => new Date(n.created_at) >= cutoff);
+    const previous = notifications.filter(n => new Date(n.created_at) < cutoff);
+
+    const colors = {
+        blue: { ring: 'ring-blue-500/40', badge: 'bg-blue-500', header: 'bg-slate-900 border-blue-900/50', accent: 'text-blue-400' },
+        amber: { ring: 'ring-amber-500/40', badge: 'bg-amber-500', header: 'bg-slate-900 border-amber-900/50', accent: 'text-amber-400' },
+    }[accentColor];
+
+    const NotifCard = ({ n }) => (
+        <div className="bg-slate-800/70 border border-slate-700/60 rounded-xl p-3.5 space-y-2">
+            <p className="text-sm text-slate-200 leading-relaxed">{n.message}</p>
+            <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                <span className="text-xs text-slate-500">{new Date(n.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                {n.pdf_path && (
+                    <a href={`http://localhost:5001/${n.pdf_path}`} target="_blank" rel="noopener noreferrer"
+                        className={`flex items-center space-x-1 text-xs ${colors.accent} hover:opacity-80 transition-opacity`}>
+                        <FileText size={11} /><span>View Attachment</span><ExternalLink size={9} />
+                    </a>
+                )}
+            </div>
+        </div>
+    );
+
+    return (
+        <>
+            {/* Bell Button */}
+            <button onClick={togglePanel}
+                className="relative w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all border border-white/20">
+                <Bell size={18} className="text-white" />
+                {unreadCount > 0 && !open && (
+                    <span className={`absolute -top-1 -right-1 w-4.5 h-4.5 min-w-[18px] ${colors.badge} rounded-full text-[10px] font-bold text-white flex items-center justify-center px-1`}>
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                )}
+            </button>
+
+            {/* Slide-in Panel */}
+            <AnimatePresence>
+                {open && (
+                    <>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm" onClick={() => setOpen(false)} />
+                        <motion.div
+                            initial={{ x: '100%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '100%', opacity: 0 }}
+                            transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+                            className={`fixed right-0 top-0 h-full w-full max-w-sm z-50 flex flex-col border-l ${colors.header} shadow-2xl`}
+                        >
+                            {/* Header */}
+                            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+                                <div className="flex items-center space-x-2">
+                                    <Bell size={16} className={colors.accent} />
+                                    <h2 className="text-base font-bold text-white">Notifications</h2>
+                                    {notifications.length > 0 && (
+                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${colors.badge} text-white`}>{notifications.length}</span>
+                                    )}
+                                </div>
+                                <button onClick={() => setOpen(false)}
+                                    className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            {/* Body */}
+                            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                                {loading ? (
+                                    <div className="flex items-center justify-center py-16 space-x-2 text-slate-500">
+                                        <Loader2 size={20} className="animate-spin" /><span className="text-sm">Loading...</span>
+                                    </div>
+                                ) : notifications.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-16 text-slate-600 space-y-2">
+                                        <Bell size={36} className="opacity-30" />
+                                        <p className="text-sm">No notifications yet.</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {recent.length > 0 && (
+                                            <div className="space-y-2">
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Recent — Last 7 Days</p>
+                                                {recent.map(n => <NotifCard key={n.id} n={n} />)}
+                                            </div>
+                                        )}
+                                        {previous.length > 0 && (
+                                            <div className="mt-2">
+                                                <button onClick={() => setPrevExpanded(p => !p)}
+                                                    className="flex items-center space-x-1.5 text-xs text-slate-500 hover:text-slate-300 font-semibold uppercase tracking-widest transition-colors w-full">
+                                                    {prevExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                                    <span>Previous ({previous.length})</span>
+                                                </button>
+                                                <AnimatePresence>
+                                                    {prevExpanded && (
+                                                        <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
+                                                            <div className="space-y-2 mt-2">{previous.map(n => <NotifCard key={n.id} n={n} />)}</div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+        </>
+    );
+};
+
+// ── Sidebar nav config is now dynamic in the component ──────────────
 // ── Sidebar Item ──────────────────────────────────────────────────────────────
 const SidebarItem = ({ item, active, onSelect }) => {
     const [open, setOpen] = useState(false);
@@ -30,9 +154,13 @@ const SidebarItem = ({ item, active, onSelect }) => {
     return (
         <div>
             <button
-                onClick={() => hasChildren ? setOpen(p => !p) : onSelect(item.id)}
+                onClick={() => {
+                    if (item.locked) return;
+                    hasChildren ? setOpen(p => !p) : onSelect(item.id)
+                }}
+                title={item.locked ? 'Locked until Admin verifies Pre-PhD result' : ''}
                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all
-                    ${(active === item.id || isChildActive)
+                    ${item.locked ? 'text-blue-100/30 cursor-not-allowed' : (active === item.id || isChildActive)
                         ? 'bg-white/20 text-white font-semibold'
                         : 'text-blue-100/70 hover:bg-white/10 hover:text-white'}`}
             >
@@ -40,11 +168,14 @@ const SidebarItem = ({ item, active, onSelect }) => {
                     <Icon size={17} />
                     <span>{item.label}</span>
                 </div>
-                {hasChildren && (
-                    <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                        <ChevronDown size={14} />
-                    </motion.div>
-                )}
+                <div className="flex items-center space-x-2">
+                    {item.locked && <Lock size={12} className="opacity-50" />}
+                    {hasChildren && !item.locked && (
+                        <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                            <ChevronDown size={14} />
+                        </motion.div>
+                    )}
+                </div>
             </button>
 
             <AnimatePresence>
@@ -94,7 +225,7 @@ const PrePhdCoursework = ({ profile }) => {
     useEffect(() => {
         const fetchCoursework = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/student/coursework?application_number=${encodeURIComponent(profile.application_number)}`);
+                const res = await fetch(`http://localhost:5001/api/student/coursework?roll_no=${encodeURIComponent(profile.roll_no)}`);
                 const data = await res.json();
                 if (res.ok) setSubjects(data.subjects);
             } catch (err) {
@@ -144,15 +275,27 @@ const PrePhdCoursework = ({ profile }) => {
                                         <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
                                             Assigned by <span className="font-semibold text-slate-700">{sub.assigned_by}</span>
                                             <span className="text-slate-300">•</span> 
-                                            {new Date(sub.assigned_at).toLocaleDateString('en-GB')}
+                                            {new Date(sub.assigned_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="shrink-0 pl-14 md:pl-0">
+                                <div className="shrink-0 pl-14 md:pl-0 flex items-center space-x-3">
                                     <div className="inline-flex items-center px-4 py-2 bg-slate-100 rounded-xl">
                                         <span className="text-xs text-slate-500 font-medium mr-2 uppercase tracking-wide">Credits</span>
                                         <span className="text-sm font-bold text-slate-800">{sub.credits}</span>
                                     </div>
+                                    {sub.syllabus_pdf_path && (
+                                        <a
+                                            href={`http://localhost:5001/${sub.syllabus_pdf_path}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-colors"
+                                        >
+                                            <FileText size={16} className="mr-2" />
+                                            <span className="text-sm font-bold">Syllabus</span>
+                                            <ExternalLink size={14} className="ml-2 opacity-70" />
+                                        </a>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -171,7 +314,7 @@ const MyMentors = ({ profile }) => {
     useEffect(() => {
         const fetchMentors = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/student/mentors?application_number=${encodeURIComponent(profile.application_number)}`);
+                const res = await fetch(`http://localhost:5001/api/student/mentors?roll_no=${encodeURIComponent(profile.roll_no)}`);
                 const data = await res.json();
                 if (res.ok) setMentors(data.mentors);
             } catch (err) {
@@ -257,7 +400,7 @@ const MyMentors = ({ profile }) => {
                 
                 {mentors.assistance_name ? (
                     <TeacherCard 
-                        role="Assistance Teacher" 
+                        role="Assistant Mentor" 
                         name={mentors.assistance_name} 
                         email={mentors.assistance_email} 
                         mobile={mentors.assistance_mobile} 
@@ -269,7 +412,7 @@ const MyMentors = ({ profile }) => {
                         <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
                             <User size={20} className="text-slate-300" />
                         </div>
-                        <p className="text-slate-500 font-medium">No Assistance Teacher</p>
+                        <p className="text-slate-500 font-medium">No Assistant Mentor</p>
                         <p className="text-xs text-slate-400 mt-1">You are currently assigned only to a Mentor Teacher.</p>
                     </div>
                 )}
@@ -291,7 +434,7 @@ const PrePhdResult = ({ profile }) => {
     const fetchResult = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`http://localhost:5001/api/student/result?application_number=${encodeURIComponent(profile.application_number)}`);
+            const res = await fetch(`http://localhost:5001/api/student/result?roll_no=${encodeURIComponent(profile.roll_no)}`);
             if (res.ok) {
                 const data = await res.json();
                 setResultData(data.result);
@@ -325,7 +468,7 @@ const PrePhdResult = ({ profile }) => {
 
         const body = new FormData();
         body.append('receipt', file);
-        body.append('application_number', profile.application_number);
+        body.append('roll_no', profile.roll_no);
         body.append('verified_by_student', 'true');
 
         setUploading(true); setError('');
@@ -369,7 +512,7 @@ const PrePhdResult = ({ profile }) => {
                                 <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5"><Calendar size={15} className="text-blue-500" /></div>
                                 <div>
                                     <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">Submitted On</p>
-                                    <p className="text-sm text-slate-800 font-semibold mt-0.5">{new Date(resultData.submitted_at).toLocaleString('en-IN')}</p>
+                                    <p className="text-sm text-slate-800 font-semibold mt-0.5">{new Date(resultData.submitted_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
                                 </div>
                             </div>
                             <div className="bg-slate-50 rounded-xl border border-slate-100 p-4 flex items-start space-x-3">
@@ -377,6 +520,25 @@ const PrePhdResult = ({ profile }) => {
                                 <div>
                                     <p className="text-xs text-slate-400 font-medium uppercase tracking-wide">Verified by Student</p>
                                     <p className="text-sm text-slate-800 font-semibold mt-0.5">Yes</p>
+                                </div>
+                            </div>
+                            {/* Admin verification status */}
+                            <div className={`sm:col-span-2 rounded-xl border p-4 flex items-start space-x-3 ${resultData.verified_by_admin ? 'bg-emerald-50 border-emerald-100' : 'bg-amber-50 border-amber-100'}`}>
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${resultData.verified_by_admin ? 'bg-emerald-100' : 'bg-amber-100'}`}>
+                                    <CheckCircle size={15} className={resultData.verified_by_admin ? 'text-emerald-600' : 'text-amber-500'} />
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Admin Verification</p>
+                                    {resultData.verified_by_admin ? (
+                                        <>
+                                            <p className="text-sm font-bold text-emerald-700 mt-0.5">✓ Verified by Admin</p>
+                                            {resultData.admin_verified_at && (
+                                                <p className="text-xs text-emerald-600 mt-0.5">{new Date(resultData.admin_verified_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p className="text-sm font-semibold text-amber-600 mt-0.5">⏳ Pending Admin Review</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -452,6 +614,9 @@ const renderPanel = (active, profileData) => {
         case 'mentors':             return profileData ? <MyMentors profile={profileData} /> : null;
         case 'prephd-coursework':   return profileData ? <PrePhdCoursework profile={profileData} /> : null;
         case 'prephd-result':       return profileData ? <PrePhdResult profile={profileData} /> : null;
+        case 'sac-members':         return profileData ? <StudentSacMembersPanel profile={profileData} /> : null;
+        case 'phd-presentation':    return profileData ? <StudentPhdPresentationPanel profile={profileData} /> : null;
+        case 'phd-letter':          return profileData ? <StudentPhdLetterPanel profile={profileData} /> : null;
         default:                    return null;
     }
 };
@@ -464,7 +629,28 @@ const StudentDashboard = () => {
     const [profileChecked, setProfileChecked] = useState(false);
     const [profileData, setProfileData] = useState(null);
 
-    const studentEmail = localStorage.getItem('studentEmail');
+    const studentEmail = sessionStorage.getItem('studentEmail');
+
+    const NAV = [
+        { id: 'profile',  label: 'Profile',     icon: User },
+        { id: 'fee',      label: 'Fee Details', icon: CreditCard },
+        { id: 'mentors',  label: 'My Mentors',  icon: Users },
+        {
+            id: 'prephd', label: 'Pre-PhD', icon: BookOpen,
+            children: [
+                { id: 'prephd-coursework', label: 'Pre-PhD Coursework', icon: ClipboardList },
+                { id: 'prephd-result',     label: 'Pre-PhD Result',     icon: BarChart2 },
+            ]
+        },
+        {
+            id: 'phd', label: 'PHD', icon: Target, locked: !profileData?.pre_phd_verified_by_admin,
+            children: [
+                { id: 'sac-members', label: 'My SAC Members', icon: Users },
+                { id: 'phd-presentation', label: 'PHD Registration Presentation', icon: LayoutList },
+                { id: 'phd-letter', label: 'PHD Registration Letter', icon: FileText }
+            ]
+        }
+    ];
 
     useEffect(() => {
         if (!studentEmail) { navigate('/login/student'); return; }
@@ -477,12 +663,19 @@ const StudentDashboard = () => {
                 `http://localhost:5001/api/student/profile?email=${encodeURIComponent(studentEmail)}`
             );
             if (res.status === 404) setShowModal(true);
-            else if (res.ok) { const d = await res.json(); setProfileData(d.profile); }
+            else if (res.ok) { 
+                const d = await res.json(); 
+                if (d.pendingProfile) {
+                    setProfileData({ ...d.pendingProfile, is_pending: true });
+                } else if (d.profile) {
+                    setProfileData({ ...d.profile, is_pending: false });
+                }
+            }
         } catch (err) { console.error(err); }
         finally { setProfileChecked(true); }
     };
 
-    const logout = () => { localStorage.removeItem('studentEmail'); navigate('/login/student'); };
+    const logout = () => { sessionStorage.removeItem('studentEmail'); navigate('/login/student'); };
 
     if (!profileChecked) return (
         <div className="min-h-screen bg-gradient-to-br from-[#3345cc] to-[#1a2a9e] flex items-center justify-center">
@@ -535,11 +728,11 @@ const StudentDashboard = () => {
 
             {/* ── Main Content ─────────────────────────── */}
             <main className="flex-1 ml-60 min-h-screen flex flex-col">
-                {/* Top welcome banner */}
+                {/* Welcome banner */}
                 <div className="bg-gradient-to-r from-[#3345cc] to-[#4f6ef7] mx-6 mt-6 rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-blue-400/20 overflow-hidden relative">
                     <div className="relative z-10">
                         <p className="text-blue-200 text-xs font-medium mb-1">
-                            {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                         </p>
                         <h1 className="text-2xl font-bold text-white">
                             {firstName ? `Welcome back, ${firstName}!` : 'Welcome back!'}
@@ -549,13 +742,30 @@ const StudentDashboard = () => {
                     {/* Decorative circles */}
                     <div className="absolute right-0 top-0 w-48 h-48 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
                     <div className="absolute right-20 bottom-0 w-28 h-28 bg-white/5 rounded-full translate-y-1/2" />
-                    <div className="relative z-10 hidden md:flex items-center justify-center w-20 h-20 bg-white/15 rounded-2xl backdrop-blur-sm">
-                        <GraduationCap size={36} className="text-white" />
+                    <div className="relative z-10 flex items-center space-x-3">
+                        <NotificationBell
+                            fetchUrl={`http://localhost:5001/api/notifications/student?email=${encodeURIComponent(studentEmail)}`}
+                            accentColor="blue"
+                        />
+                        <div className="hidden md:flex items-center justify-center w-20 h-20 bg-white/15 rounded-2xl backdrop-blur-sm">
+                            <GraduationCap size={36} className="text-white" />
+                        </div>
                     </div>
                 </div>
 
                 {/* Panel content */}
-                <div className="flex-1 px-6 py-6">
+                <div className="flex-1 px-6 py-6 relative">
+                    {profileData?.is_pending && (
+                        <div className="absolute inset-0 z-20 flex items-center justify-center bg-slate-200/50 backdrop-blur-sm m-6 rounded-2xl">
+                            <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md text-center mx-4">
+                                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Lock className="text-blue-600" size={32} />
+                                </div>
+                                <h3 className="text-2xl font-bold text-slate-800 mb-2">Verification Pending</h3>
+                                <p className="text-slate-600">Student Dashboard will unlock once the Admin approves it.</p>
+                            </div>
+                        </div>
+                    )}
                     <AnimatePresence mode="wait">
                         <motion.div key={active}
                             initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}

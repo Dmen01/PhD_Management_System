@@ -28,7 +28,7 @@ const Login = () => {
             });
             const data = await res.json();
             if (res.ok) {
-                localStorage.setItem('studentEmail', email);
+                sessionStorage.setItem('studentEmail', email);
                 navigate('/dashboard/student');
             } else {
                 setLoginError(data.message);

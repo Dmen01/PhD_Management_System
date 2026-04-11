@@ -163,7 +163,7 @@ const StudentProfile = () => {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showChangePassword, setShowChangePassword] = useState(false);
-    const studentEmail = localStorage.getItem('studentEmail');
+    const studentEmail = sessionStorage.getItem('studentEmail');
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -179,7 +179,7 @@ const StudentProfile = () => {
     if (loading) return <div className="flex items-center justify-center h-full"><div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" /></div>;
     if (!profile) return <div className="flex items-center justify-center h-full text-slate-400 text-sm">Profile not found.</div>;
 
-    const dob = profile.dob ? new Date(profile.dob).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
+    const dob = profile.dob ? new Date(profile.dob).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
 
     return (
         <div className="max-w-3xl space-y-6">
@@ -193,7 +193,7 @@ const StudentProfile = () => {
                         {profile.first_name} {profile.middle_name || ''} {profile.last_name}
                     </h2>
                     <p className="text-slate-400 text-sm mt-0.5">
-                        Application No: <span className="text-blue-600 font-mono font-semibold">{profile.application_number}</span>
+                        Roll No: <span className="text-blue-600 font-mono font-semibold">{profile.roll_no}</span>
                     </p>
                 </div>
             </div>

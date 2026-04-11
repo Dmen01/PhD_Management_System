@@ -5,14 +5,12 @@ import {
     CheckSquare, Square, Loader2, ExternalLink, CheckCircle, ChevronDown
 } from 'lucide-react';
 
-const SEMESTERS = Array.from({ length: 12 }, (_, i) => i + 1);
+const SEMESTERS = Array.from({ length: 16 }, (_, i) => i + 1);
 const API = 'http://localhost:5001';
 
 // ── View Mode — read-only record display ──────────────────────────────────────
 const FeeRecord = ({ fee }) => {
-    const date = new Date(fee.payment_date).toLocaleDateString('en-IN', {
-        day: '2-digit', month: 'long', year: 'numeric'
-    });
+    const date = new Date(fee.payment_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const submitted = new Date(fee.submitted_at).toLocaleString('en-IN');
 
     return (
@@ -56,7 +54,7 @@ const InfoCard = ({ icon: Icon, label, value }) => (
 );
 
 // ── Upload Form — shown when no record exists ────────────────────────────────
-const UploadForm = ({ applicationNumber, semester, onSuccess }) => {
+const UploadForm = ({ rollNo, semester, onSuccess }) => {
     const [paymentDate, setPaymentDate] = useState('');
     const [file, setFile] = useState(null);
     const [verified, setVerified] = useState(false);
@@ -81,7 +79,7 @@ const UploadForm = ({ applicationNumber, semester, onSuccess }) => {
 
         const body = new FormData();
         body.append('receipt', file);
-        body.append('applicationNumber', applicationNumber);
+        body.append('rollNo', rollNo);
         body.append('semester', semester);
         body.append('paymentDate', paymentDate);
         body.append('verifiedByStudent', 'true');
@@ -171,9 +169,10 @@ const FeeDetails = () => {
     const [feeData, setFeeData] = useState(null);
     const [noRecord, setNoRecord] = useState(false);
     const [fetching, setFetching] = useState(false);
-    const [applicationNumber, setApplicationNumber] = useState('');
+    const [rollNo, setRollNo] = useState('');
+    const [admissionYear, setAdmissionYear] = useState(null);
 
-    const studentEmail = localStorage.getItem('studentEmail');
+    const studentEmail = sessionStorage.getItem('studentEmail');
 
     // Resolve application number from email
     useEffect(() => {
@@ -182,7 +181,8 @@ const FeeDetails = () => {
                 const res = await fetch(`${API}/api/student/profile?email=${encodeURIComponent(studentEmail)}`);
                 if (res.ok) {
                     const data = await res.json();
-                    setApplicationNumber(data.profile.application_number);
+                    setRollNo(data.profile.roll_no);
+                    setAdmissionYear(parseInt(data.profile.year_of_admission, 10));
                 }
             } catch (err) { console.error(err); }
         };
@@ -198,10 +198,10 @@ const FeeDetails = () => {
     };
 
     const fetchFeeData = async (sem) => {
-        if (!applicationNumber) return;
+        if (!rollNo) return;
         setFetching(true);
         try {
-            const res = await fetch(`${API}/api/fee?applicationNumber=${applicationNumber}&semester=${sem}`);
+            const res = await fetch(`${API}/api/fee?rollNo=${rollNo}&semester=${sem}`);
             if (res.ok) { const d = await res.json(); setFeeData(d.fee); setNoRecord(false); }
             else if (res.status === 404) { setFeeData(null); setNoRecord(true); }
         } catch (err) { console.error(err); }
@@ -209,6 +209,14 @@ const FeeDetails = () => {
     };
 
     const handleUploadSuccess = () => fetchFeeData(semester);
+
+    const formatSemester = (semInt) => {
+        if (!semInt) return 'Choose a semester...';
+        if (!admissionYear) return `Semester ${semInt}`;
+        const year = admissionYear + Math.floor((semInt - 1) / 2);
+        const roman = (semInt % 2 === 1) ? 'I' : 'II';
+        return `${year}-${roman}`;
+    };
 
     return (
         <div className="max-w-2xl space-y-6">
@@ -225,7 +233,7 @@ const FeeDetails = () => {
                     <button type="button" onClick={() => setDropdownOpen(!dropdownOpen)}
                         className="w-full flex items-center justify-between px-4 h-11 bg-white border border-slate-200 rounded-xl text-sm shadow-sm hover:border-blue-400 transition-all">
                         <span className={semester ? 'text-slate-800 font-medium' : 'text-slate-400'}>
-                            {semester ? `Semester ${semester}` : 'Choose a semester...'}
+                            {formatSemester(semester)}
                         </span>
                         <motion.div animate={{ rotate: dropdownOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
                             <ChevronDown size={16} className="text-slate-400" />
@@ -237,14 +245,14 @@ const FeeDetails = () => {
                             <motion.div
                                 initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
                                 className="absolute z-20 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden">
-                                <div className="grid grid-cols-4 gap-1 p-2">
+                                <div className="grid grid-cols-2 gap-1 p-2">
                                     {SEMESTERS.map(s => (
                                         <button key={s} type="button" onClick={() => selectSemester(s)}
                                             className={`py-2.5 rounded-lg text-sm font-medium transition-all
                                                 ${semester === s
                                                     ? 'bg-blue-600 text-white'
                                                     : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'}`}>
-                                            Sem {s}
+                                            {formatSemester(s)}
                                         </button>
                                     ))}
                                 </div>
@@ -279,18 +287,18 @@ const FeeDetails = () => {
                     </motion.div>
                 )}
 
-                {semester && !fetching && noRecord && !applicationNumber && (
+                {semester && !fetching && noRecord && !rollNo && (
                     <motion.p key="noapplication" className="text-sm text-red-400">
                         Profile not found. Please complete your registration first.
                     </motion.p>
                 )}
 
-                {semester && !fetching && noRecord && applicationNumber && (
+                {semester && !fetching && noRecord && rollNo && (
                     <motion.div key="upload" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="bg-white border border-blue-100 rounded-2xl p-5 shadow-sm">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Upload Semester {semester} Fee Receipt</p>
                         <UploadForm
-                            applicationNumber={applicationNumber}
+                            rollNo={rollNo}
                             semester={semester}
                             onSuccess={handleUploadSuccess}
                         />

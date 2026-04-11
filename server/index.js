@@ -7,6 +7,9 @@ import studentRoutes from './routes/studentRoutes.js';
 import feeRoutes from './routes/feeRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import teacherRoutes from './routes/teacherRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import sacRoutes from './routes/sacRoutes.js';
+import phdRoutes from './routes/phdRoutes.js';
 
 dotenv.config();
 
@@ -36,6 +39,9 @@ app.use('/api/student', studentRoutes);
 app.use('/api/fee', feeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/teacher', teacherRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/sac', sacRoutes);
+app.use('/api/phd', phdRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

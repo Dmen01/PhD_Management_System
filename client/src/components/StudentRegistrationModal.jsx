@@ -29,9 +29,10 @@ const StudentRegistrationModal = ({ email, onComplete }) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [form, setForm] = useState({
-        applicationNumber: '', firstName: '', middleName: '', lastName: '',
+        rollNo: '', firstName: '', middleName: '', lastName: '',
         fatherName: '', motherName: '', dob: '', mobileNumber: '',
-        yearOfAdmission: new Date().getFullYear(), email
+        yearOfAdmission: new Date().getFullYear(), email,
+        admissionMode: 'Entrance', admissionType: 'Full-time'
     });
 
     const update = (e) => {
@@ -41,7 +42,7 @@ const StudentRegistrationModal = ({ email, onComplete }) => {
 
     const validate = () => {
         const e = {};
-        if (!form.applicationNumber.trim()) e.applicationNumber = 'Required';
+        if (!form.rollNo.trim()) e.rollNo = 'Required';
         if (!form.firstName.trim()) e.firstName = 'Required';
         if (!form.lastName.trim()) e.lastName = 'Required';
         if (!form.fatherName.trim()) e.fatherName = 'Required';
@@ -52,6 +53,8 @@ const StudentRegistrationModal = ({ email, onComplete }) => {
         if (!form.email.trim()) e.email = 'Required';
         else if (!isValidEmail(form.email)) e.email = 'Invalid email';
         if (!form.yearOfAdmission) e.yearOfAdmission = 'Required';
+        if (!form.admissionMode) e.admissionMode = 'Required';
+        if (!form.admissionType) e.admissionType = 'Required';
         return e;
     };
 
@@ -66,7 +69,7 @@ const StudentRegistrationModal = ({ email, onComplete }) => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    applicationNumber: form.applicationNumber,
+                    rollNo: form.rollNo,
                     email: form.email,
                     firstName: form.firstName,
                     middleName: form.middleName,
@@ -75,7 +78,9 @@ const StudentRegistrationModal = ({ email, onComplete }) => {
                     motherName: form.motherName,
                     dob: form.dob,
                     mobileNumber: form.mobileNumber,
-                    yearOfAdmission: form.yearOfAdmission
+                    yearOfAdmission: form.yearOfAdmission,
+                    admissionMode: form.admissionMode,
+                    admissionType: form.admissionType
                 })
             });
             const data = await res.json();
@@ -118,10 +123,10 @@ const StudentRegistrationModal = ({ email, onComplete }) => {
                         </div>
                     )}
 
-                    {/* Application Number */}
-                    <Field label="Application Number *" error={errors.applicationNumber}>
-                        <Input name="applicationNumber" value={form.applicationNumber} onChange={update}
-                            icon={FileText} placeholder="e.g. APP2024001" error={errors.applicationNumber} />
+                    {/* Roll Number */}
+                    <Field label="Roll Number *" error={errors.rollNo}>
+                        <Input name="rollNo" value={form.rollNo} onChange={update}
+                            icon={FileText} placeholder="e.g. ROLL2024001" error={errors.rollNo} />
                     </Field>
 
                     {/* Name row */}
@@ -174,6 +179,27 @@ const StudentRegistrationModal = ({ email, onComplete }) => {
                         <Field label="Email *" error={errors.email}>
                             <Input name="email" type="email" value={form.email} onChange={update}
                                 icon={Mail} placeholder="your@email.com" error={errors.email} />
+                        </Field>
+                    </div>
+
+                    {/* Admission Mode & Type */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Field label="Mode of Admission *" error={errors.admissionMode}>
+                            <select name="admissionMode" value={form.admissionMode} onChange={update}
+                                className="w-full h-10 px-3 rounded-lg border border-slate-200 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all bg-white"
+                            >
+                                <option value="Entrance">Entrance</option>
+                                <option value="NET">NET</option>
+                                <option value="ADF">ADF</option>
+                            </select>
+                        </Field>
+                        <Field label="Type of Admission *" error={errors.admissionType}>
+                            <select name="admissionType" value={form.admissionType} onChange={update}
+                                className="w-full h-10 px-3 rounded-lg border border-slate-200 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all bg-white"
+                            >
+                                <option value="Full-time">Full-time</option>
+                                <option value="Part-time">Part-time</option>
+                            </select>
                         </Field>
                     </div>
 
