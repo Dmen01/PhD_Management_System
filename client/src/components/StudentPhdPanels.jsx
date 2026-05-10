@@ -42,48 +42,45 @@ export const StudentSacMembersPanel = ({ profile }) => {
                 <p className="text-slate-500 mt-1">Teachers assigned to your Student Advisory Committee.</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {sacMembers.map((member, index) => (
-                    <div key={member.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-full">
-                        <div className="px-6 py-5 border-b bg-amber-50/50 border-amber-100/50 flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-amber-100 text-amber-600">
-                                    <Target size={20} />
+            <div className="bg-white border border-slate-100 rounded-3xl shadow-sm overflow-hidden">
+                <div className="divide-y divide-slate-100">
+                    {sacMembers.map((member, index) => (
+                        <div key={member.id} className="p-6 hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div className="flex flex-col space-y-2">
+                                <div className="flex items-center space-x-3 mb-1">
+                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-100 text-amber-600 text-sm font-bold shrink-0">
+                                        {index + 1}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-slate-800 leading-tight">{member.name}</h3>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-amber-500">SAC Member</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5 text-amber-500">SAC Member {index + 1}</p>
-                                    <h3 className="text-lg font-bold text-slate-800 leading-tight">{member.name}</h3>
+                                <div className="pl-11 space-y-1">
+                                    <div className="flex items-center space-x-2 text-sm text-slate-600">
+                                        <User size={14} className="text-slate-400" />
+                                        <span className="font-medium">{member.designation}</span>
+                                    </div>
+                                    <div className="flex items-center space-x-2 text-sm text-slate-600">
+                                        <Building2 size={14} className="text-slate-400" />
+                                        <span className="font-medium">{member.affiliation}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-col space-y-2 pl-11 md:pl-0 md:text-right">
+                                <div className="flex items-center md:justify-end space-x-2 text-sm text-slate-600">
+                                    <span className="font-medium">{member.email}</span>
+                                    <Mail size={14} className="text-slate-400 shrink-0" />
+                                </div>
+                                <div className="flex items-center md:justify-end space-x-2 text-sm text-slate-600">
+                                    <span className="font-medium">{member.phone_number}</span>
+                                    <Phone size={14} className="text-slate-400 shrink-0" />
                                 </div>
                             </div>
                         </div>
-                        <div className="p-6 flex-1 space-y-4">
-                            <div className="flex items-center space-x-3 text-sm">
-                                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
-                                    <User size={14} className="text-slate-400" />
-                                </div>
-                                <span className="text-slate-600 font-medium">{member.designation}</span>
-                            </div>
-                            <div className="flex items-center space-x-3 text-sm">
-                                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
-                                    <Building2 size={14} className="text-slate-400" />
-                                </div>
-                                <span className="text-slate-600 font-medium">{member.affiliation}</span>
-                            </div>
-                            <div className="flex items-center space-x-3 text-sm">
-                                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
-                                    <Mail size={14} className="text-slate-400" />
-                                </div>
-                                <span className="text-slate-600 font-medium">{member.email}</span>
-                            </div>
-                            <div className="flex items-center space-x-3 text-sm">
-                                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center shrink-0">
-                                    <Phone size={14} className="text-slate-400" />
-                                </div>
-                                <span className="text-slate-600 font-medium">{member.phone_number}</span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         </div>
     );

@@ -152,21 +152,23 @@ const ModalSacView = ({ rollNo }) => {
     if (members.length === 0) return <p className="text-xs text-slate-400 italic text-center py-6">No SAC members assigned yet.</p>;
 
     return (
-        <div className="grid grid-cols-1 gap-3">
-            {members.map((m, i) => (
-                <div key={m.id} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs">{i+1}</div>
-                        <div>
-                            <p className="text-sm font-bold text-slate-800">{m.name}</p>
-                            <p className="text-[10px] text-slate-500">{m.designation} · {m.affiliation}</p>
+        <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+            <div className="divide-y divide-slate-100">
+                {members.map((m, i) => (
+                    <div key={m.id} className="px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                        <div className="flex items-center space-x-4">
+                            <span className="text-sm font-bold text-slate-300 w-4 text-right">{i + 1}.</span>
+                            <div>
+                                <p className="text-sm font-bold text-slate-800">{m.name}</p>
+                                <p className="text-[10px] text-slate-500">{m.designation} · {m.affiliation}</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[10px] text-slate-400 font-medium">{m.email}</p>
                         </div>
                     </div>
-                    <div className="text-right">
-                        <p className="text-[10px] text-slate-400">{m.email}</p>
-                    </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
     );
 };
@@ -201,6 +203,12 @@ const ModalPresentationView = ({ rollNo }) => {
                         <span className={`text-[10px] font-bold uppercase ${p.remark === 'Accepted' ? 'text-emerald-600' : 'text-red-600'}`}>{p.remark}</span>
                     </div>
                     <div className="p-4 space-y-3">
+                        {p.observation_message && (
+                            <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Observations</p>
+                                <p className="text-xs text-slate-700 italic">"{p.observation_message}"</p>
+                            </div>
+                        )}
                         {p.remarks && (
                             <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
                                 <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Official Remarks</p>
@@ -296,12 +304,29 @@ const ModalProgressView = ({ rollNo }) => {
                         <span>{months[r.from_month-1]} {r.from_year} — {months[r.to_month-1]} {r.to_year}</span>
                         <span>{!r.is_present ? 'Absent' : r.verdict}</span>
                     </div>
-                    <div className="p-4 space-y-2">
-                        {r.remarks && <p className="text-xs text-slate-600 italic">"{r.remarks}"</p>}
+                    <div className="p-4 space-y-3">
+                        {r.is_present && (
+                            <div className="flex items-center space-x-4 text-xs">
+                                <div><span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Report No:</span> <span className="font-semibold text-slate-700">{r.report_number || 'N/A'}</span></div>
+                                {r.presentation_date && <div><span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Presented:</span> <span className="font-semibold text-slate-700">{new Date(r.presentation_date).toLocaleDateString('en-GB')}</span></div>}
+                            </div>
+                        )}
+                        {r.observations && (
+                            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Observations</p>
+                                <p className="text-xs text-slate-700 italic">"{r.observations}"</p>
+                            </div>
+                        )}
+                        {r.remarks && (
+                            <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase mb-0.5">Remarks</p>
+                                <p className="text-xs text-slate-700 italic">"{r.remarks}"</p>
+                            </div>
+                        )}
                         {r.report_pdf_path && (
                             <a href={`http://localhost:5001/${r.report_pdf_path}`} target="_blank" rel="noopener noreferrer"
-                               className="text-[10px] font-bold text-blue-600 flex items-center space-x-1 hover:underline">
-                                <FileText size={12} /><span>View Report</span>
+                               className="inline-flex items-center space-x-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold hover:bg-blue-100 transition-colors">
+                                <FileText size={12} /><span>View Full Report PDF</span>
                             </a>
                         )}
                     </div>
