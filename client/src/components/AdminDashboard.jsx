@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Users, GraduationCap, LogOut, Search, Loader2, ShieldCheck, ChevronDown, BookOpen, PlusCircle, Trash2, UserPlus, Link2, FileText, ExternalLink, UserMinus, ArrowLeftRight, Bell, Send, X, ChevronUp, CheckCircle2, XCircle, Award, ClipboardCheck, Users2 } from 'lucide-react';
+import { 
+    LayoutDashboard, Users, GraduationCap, ClipboardList, BookOpen, 
+    LogOut, Settings, Bell, Search, Filter, Plus, PlusCircle, User, 
+    Calendar, CheckCircle, Clock, X, ChevronDown, Mail, Phone, ExternalLink, Loader2, FileText, Target, Trash2, Send, ChevronUp, ArrowLeftRight, UserMinus, ClipboardCheck, CheckCircle2, XCircle, ShieldCheck, UserPlus, Link2, Award, Users2 
+} from 'lucide-react';
+import StudentDetailsModal from './StudentDetailsModal';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PhdRegistrationPresentationPanel, PhdRegistrationLetterPanel } from './AdminPhdPanels';
+import { PhdRegistrationPresentationPanel, PhdRegistrationLetterPanel, PhdProgressReportPanel } from './AdminPhdPanels';
 
 // ── Sidebar nav config ────────────────────────────────────────────────────────
 const NAV = [
@@ -25,6 +30,7 @@ const NAV = [
         children: [
             { id: 'phd-presentation', label: 'PHD Registration Presentation', icon: ClipboardCheck },
             { id: 'phd-letter', label: 'PHD Registration Letter', icon: FileText },
+            { id: 'phd-progress', label: 'PHD Progress Report', icon: FileText },
         ]
     },
 ];
@@ -116,7 +122,7 @@ const DetailRow = ({ label, value }) => (
     </div>
 );
 
-const StudentTable = ({ data, filter }) => {
+const StudentTable = ({ data, filter, onViewDetail }) => {
     const [selectedId, setSelectedId] = useState(null);
 
     const rows = data.filter(s =>
@@ -171,19 +177,13 @@ const StudentTable = ({ data, filter }) => {
                                             transition={{ duration: 0.15 }}
                                         >
                                             <td colSpan={3} className="px-6 py-5 bg-slate-800/60 border-t border-slate-700">
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                    <DetailRow label="Roll No." value={s.roll_no} />
-                                                    <DetailRow label="Full Name" value={fullName} />
-                                                    <DetailRow label="Email" value={s.email} />
-                                                    <DetailRow label="Mobile" value={s.mobile_number} />
-                                                    <DetailRow label="Date of Birth" value={s.dob ? new Date(s.dob).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—'} />
-                                                    <DetailRow label="Father's Name" value={s.father_name} />
-                                                    <DetailRow label="Mother's Name" value={s.mother_name} />
-                                                    <DetailRow label="Year of Admission" value={s.year_of_admission} />
-                                                    <DetailRow label="Mode of Admission" value={s.admission_mode} />
-                                                    <DetailRow label="Type of Admission" value={s.admission_type} />
-                                                    <DetailRow label="Registered On" value={new Date(s.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })} />
-                                                </div>
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); onViewDetail(s); }}
+                                                    className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-900/20"
+                                                >
+                                                    <User size={16} />
+                                                    <span>View Full Detail Profile</span>
+                                                </button>
                                             </td>
                                         </motion.tr>
                                     )}
@@ -391,6 +391,7 @@ const UserManagement = () => {
     const [search, setSearch] = useState('');
     const [reassigningTeacher, setReassigningTeacher] = useState(null);
     const [deletingTeacher, setDeletingTeacher] = useState(null);
+    const [viewingStudentDetails, setViewingStudentDetails] = useState(null);
     const [deleteError, setDeleteError] = useState('');
 
     const fetchAll = async () => {
@@ -500,7 +501,7 @@ const UserManagement = () => {
                         transition={{ duration: 0.18 }}
                     >
                         {activeTab === 'students'
-                            ? <StudentTable data={students} filter={search} />
+                            ? <StudentTable data={students} filter={search} onViewDetail={setViewingStudentDetails} />
                             : <TeacherTable data={teachers} filter={search} onReassign={setReassigningTeacher} onDelete={handleDelete} />
                         }
                     </motion.div>
@@ -521,6 +522,15 @@ const UserManagement = () => {
                     onClose={() => setReassigningTeacher(null)}
                 />
             )}
+
+            <AnimatePresence>
+                {viewingStudentDetails && (
+                    <StudentDetailsModal
+                        student={viewingStudentDetails}
+                        onClose={() => setViewingStudentDetails(null)}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* Warning modal when trying to remove a teacher who still has students */}
             {deletingTeacher && deletingTeacher.assigned_student_count > 0 && (
@@ -2066,6 +2076,7 @@ const PANELS = {
     'sac-assign': <SacAssignPanel />,
     'phd-presentation': <PhdRegistrationPresentationPanel />,
     'phd-letter': <PhdRegistrationLetterPanel />,
+    'phd-progress': <PhdProgressReportPanel />,
 };
 
 
@@ -2076,15 +2087,22 @@ const AdminDashboard = () => {
 
     const adminEmail = sessionStorage.getItem('adminEmail') || 'Admin';
 
+    useEffect(() => {
+        if (!sessionStorage.getItem('adminEmail')) { navigate('/login/admin'); }
+        // Sync body background
+        document.body.style.backgroundColor = '#0f172a'; // slate-900
+        return () => { document.body.style.backgroundColor = ''; };
+    }, [navigate]);
+
     const logout = () => {
         sessionStorage.removeItem('adminEmail');
         navigate('/login/admin');
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 flex text-slate-100">
+        <div className="h-screen overflow-hidden bg-slate-900 flex text-slate-100">
             {/* ── Sidebar ──────────────────────────────── */}
-            <aside className="w-60 bg-gradient-to-b from-slate-950 to-slate-900 flex flex-col min-h-screen fixed top-0 left-0 z-30 shadow-2xl border-r border-slate-800">
+            <aside className="w-60 bg-gradient-to-b from-slate-950 to-slate-900 flex flex-col h-screen fixed top-0 left-0 z-30 shadow-2xl border-r border-slate-800 overscroll-none">
                 {/* Logo */}
                 <div className="px-5 pt-7 pb-6">
                     <div className="flex flex-col items-center space-y-3">
@@ -2122,7 +2140,7 @@ const AdminDashboard = () => {
             </aside>
 
             {/* ── Main Content ──────────────────────────── */}
-            <main className="flex-1 ml-60 min-h-screen flex flex-col">
+            <main className="flex-1 ml-60 h-screen overflow-y-auto bg-slate-900 overscroll-none">
                 {/* Welcome banner */}
                 <div className="bg-gradient-to-r from-emerald-900/60 to-slate-800 mx-6 mt-6 rounded-2xl p-6 flex items-center justify-between shadow-lg border border-emerald-800/30 overflow-hidden relative">
                     <div className="relative z-10">

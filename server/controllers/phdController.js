@@ -30,6 +30,19 @@ const storageLetter = multer.diskStorage({
     }
 });
 
+const storageProgress = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = 'uploads/phd_progress';
+        fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const { roll_no } = req.body;
+        const ext = path.extname(file.originalname);
+        cb(null, `${roll_no}_progress_${Date.now()}${ext}`);
+    }
+});
+
 const fileFilter = (req, file, cb) => {
     if (file.mimetype === 'application/pdf') cb(null, true);
     else cb(new Error('Only PDF files are allowed'), false);
@@ -45,6 +58,12 @@ export const uploadLetterMiddleware = multer({
     storage: storageLetter, 
     fileFilter, 
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB max
+});
+
+export const uploadProgressReportMiddleware = multer({ 
+    storage: storageProgress, 
+    fileFilter, 
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
 });
 
 
@@ -81,9 +100,25 @@ export const getEligibleLetterStudents = async (req, res) => {
     }
 };
 
+export const getEligibleProgressStudents = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT DISTINCT sm.roll_no, sm.first_name, sm.last_name, sm.email, sm.year_of_admission
+            FROM student_master sm
+            JOIN phd_registration_presentations pp ON pp.roll_no = sm.roll_no
+            WHERE pp.remark = 'Accepted'
+            ORDER BY sm.first_name ASC
+        `);
+        res.json({ students: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching eligible students for progress reports' });
+    }
+};
+
 // PhD Registration Presentation
 export const uploadPresentation = async (req, res) => {
-    const { roll_no, presentation_date, observation_message, remark } = req.body;
+    const { roll_no, presentation_date, observation_message, remark, remarks } = req.body;
     
     if (!req.file) return res.status(400).json({ message: 'Synopsis PDF is required' });
     if (!roll_no || !presentation_date || !remark) {
@@ -95,9 +130,9 @@ export const uploadPresentation = async (req, res) => {
         // Can insert multiple presentations per student 
         const result = await pool.query(
             `INSERT INTO phd_registration_presentations 
-            (roll_no, synopsis_pdf_path, presentation_date, observation_message, remark)
-             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [roll_no, req.file.path, presentation_date, observation_message, remark]
+            (roll_no, synopsis_pdf_path, presentation_date, observation_message, remark, remarks)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [roll_no, req.file.path, presentation_date, observation_message, remark, remarks]
         );
         res.status(201).json({ message: 'Presentation uploaded successfully', presentation: result.rows[0] });
     } catch (err) {
@@ -229,5 +264,93 @@ export const deleteLetter = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error deleting letter' });
+    }
+};
+
+// PhD Progress Reports
+export const uploadProgressReport = async (req, res) => {
+    const { 
+        roll_no, from_month, from_year, to_month, to_year, 
+        is_present, report_number, presentation_date, verdict, remarks, observations 
+    } = req.body;
+    
+    const present = is_present === 'true' || is_present === true;
+
+    if (present && !req.file) {
+        return res.status(400).json({ message: 'Progress report PDF is required for present students' });
+    }
+
+    if (!roll_no || !from_month || !from_year || !to_month || !to_year) {
+        if (req.file) fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO phd_progress_reports 
+            (roll_no, from_month, from_year, to_month, to_year, is_present, report_number, presentation_date, report_pdf_path, verdict, remarks, observations)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+            [
+                roll_no, from_month, from_year, to_month, to_year, present, 
+                present ? report_number : null, 
+                present ? presentation_date : null, 
+                present ? req.file.path : null, 
+                present ? verdict : null, 
+                remarks, 
+                present ? observations : null
+            ]
+        );
+        res.status(201).json({ message: 'Progress report uploaded successfully', report: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        if (req.file) fs.unlinkSync(req.file.path);
+        res.status(500).json({ message: 'Server error uploading progress report' });
+    }
+};
+
+export const getProgressReports = async (req, res) => {
+    const { roll_no } = req.query;
+    try {
+        let query = `
+            SELECT pr.*, sm.first_name, sm.last_name 
+            FROM phd_progress_reports pr
+            JOIN student_master sm ON sm.roll_no = pr.roll_no
+            ORDER BY pr.uploaded_at DESC
+        `;
+        let params = [];
+        
+        if (roll_no) {
+            query = `
+                SELECT pr.*, sm.first_name, sm.last_name 
+                FROM phd_progress_reports pr
+                JOIN student_master sm ON sm.roll_no = pr.roll_no
+                WHERE pr.roll_no = $1
+                ORDER BY pr.uploaded_at DESC
+            `;
+            params = [roll_no];
+        }
+
+        const result = await pool.query(query, params);
+        res.json({ reports: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching progress reports' });
+    }
+};
+
+export const deleteProgressReport = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const check = await pool.query('SELECT report_pdf_path FROM phd_progress_reports WHERE id = $1', [id]);
+        if (check.rows.length === 0) return res.status(404).json({ message: 'Record not found' });
+        
+        const path = check.rows[0].report_pdf_path;
+        await pool.query('DELETE FROM phd_progress_reports WHERE id = $1', [id]);
+        if (path && fs.existsSync(path)) fs.unlinkSync(path);
+        
+        res.json({ message: 'Progress report removed' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error deleting progress report' });
     }
 };

@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, LogOut, ChevronDown, User, Mail, Phone, Building2, Award, Calendar, Hash, Loader2, Lock, Eye, EyeOff, ShieldCheck, X, GraduationCap, CheckCircle2, ExternalLink, Bell, ChevronUp, FileText } from 'lucide-react';
+import { 
+    LayoutDashboard, Users, GraduationCap, ClipboardList, BookOpen, 
+    LogOut, Settings, Bell, Search, Filter, Plus, User, 
+    Calendar, CheckCircle, Clock, X, ChevronDown, Mail, Phone, ExternalLink, Loader2, FileText, Target, Building2, Award, Hash, Lock, Eye, EyeOff, ShieldCheck, CheckCircle2, ChevronUp
+} from 'lucide-react';
+import StudentDetailsModal from './StudentDetailsModal';
 import TeacherRegistrationModal from './TeacherRegistrationModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Notification Bell Panel ───────────────────────────────────────────────────────
 const NotificationBell = ({ fetchUrl, accentColor = 'amber' }) => {
@@ -499,73 +504,13 @@ const TeacherFeeViewer = ({ rollNo, admissionYear }) => {
     );
 };
 
-// ── Teacher Coursework Result Viewer Sub-component ────────────────────────────
-const TeacherCourseworkResultViewer = ({ rollNo }) => {
-    const [resultData, setResultData] = useState(null);
-    const [fetching, setFetching] = useState(true);
-
-    useEffect(() => {
-        const fetchResult = async () => {
-            if (!rollNo) return;
-            try {
-                const res = await fetch(`http://localhost:5001/api/student/result?roll_no=${encodeURIComponent(rollNo)}`);
-                if (res.ok) {
-                    const d = await res.json();
-                    setResultData(d.result);
-                } else if (res.status === 404) {
-                    setResultData(null);
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setFetching(false);
-            }
-        };
-        fetchResult();
-    }, [rollNo]);
-
-    return (
-        <div className="bg-white rounded-lg p-3 border border-slate-200 shadow-sm min-h-[80px] flex flex-col justify-center text-sm w-full gap-2">
-            {fetching ? (
-                <span className="text-slate-400 animate-pulse flex items-center space-x-2"><Loader2 size={16} className="animate-spin" /><span>Fetching...</span></span>
-            ) : resultData ? (
-                <>
-                    <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                            <span className="text-xs text-slate-400">Upload Date</span>
-                            <span className="font-semibold text-slate-700">{new Date(resultData.submitted_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
-                        </div>
-                        <a
-                            href={`http://localhost:5001/${resultData.result_pdf_path}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs font-semibold px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition flex items-center"
-                        >
-                            View Result <ExternalLink size={12} className="ml-1.5" />
-                        </a>
-                    </div>
-                    <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-semibold ${resultData.verified_by_admin ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}`}>
-                        {resultData.verified_by_admin ? (
-                            <><CheckCircle2 size={13} /><span>Admin Verified</span></>
-                        ) : (
-                            <><span>⏳</span><span>Pending Admin Review</span></>
-                        )}
-                    </div>
-                </>
-            ) : (
-                <span className="text-slate-400 py-3 italic">Coursework result not uploaded yet</span>
-            )}
-        </div>
-    );
-};
-
 // ── My Students Panel ─────────────────────────────────────────────────────
 const MyStudents = ({ email }) => {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [openIds, setOpenIds] = useState({});
-    const [activeTabs, setActiveTabs] = useState({});
     const [assigningCourseworkTo, setAssigningCourseworkTo] = useState(null); // student object
+    const [viewingStudentDetails, setViewingStudentDetails] = useState(null); // student object
 
     useEffect(() => {
         const fetch_ = async () => {
@@ -583,13 +528,9 @@ const MyStudents = ({ email }) => {
     }, [email]);
 
     const toggle = (id) => setOpenIds(prev => ({ ...prev, [id]: !prev[id] }));
-    const toggleTab = (studentId, tabId) => setActiveTabs(prev => ({ ...prev, [studentId]: prev[studentId] === tabId ? null : tabId }));
 
-    // Use the first row to determine the pair info (all rows share same mentor/assistant mentor)
+    // Use the first row to determine the pair info
     const pairInfo = students[0] ?? null;
-    const isMentor = pairInfo && pairInfo.mentor_email === email;
-
-
 
     return (
         <div className="space-y-5">
@@ -645,7 +586,7 @@ const MyStudents = ({ email }) => {
                 </div>
             ) : (
                 <div className="space-y-2">
-                    {students.map((s, idx) => {
+                    {students.map((s) => {
                         const name = `${s.student_first_name} ${s.student_last_name}`;
                         const isOpen = !!openIds[s.id];
                         return (
@@ -667,13 +608,6 @@ const MyStudents = ({ email }) => {
                                         </div>
                                     </div>
                                     <div className="flex items-center space-x-3 shrink-0">
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); setAssigningCourseworkTo(s); }}
-                                            className={`hidden sm:flex items-center space-x-1.5 px-3 py-1.5 ${s.has_coursework ? 'bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/50' : 'bg-amber-100 hover:bg-amber-200 text-amber-700 border border-amber-200/50'} text-xs font-semibold rounded-lg transition-colors`}
-                                        >
-                                            <BookOpen size={13} />
-                                            <span>{s.has_coursework ? 'See Assigned Coursework' : 'Assign Coursework'}</span>
-                                        </button>
                                         <span className="text-xs text-slate-400 hidden lg:block">
                                             Year: {s.year_of_admission}
                                         </span>
@@ -693,62 +627,26 @@ const MyStudents = ({ email }) => {
                                             transition={{ duration: 0.2 }}
                                             className="overflow-hidden"
                                         >
-                                            <div className="border-t border-slate-100 px-5 py-4 space-y-3 bg-slate-50/60">
-
-                                                <AccordionTab 
-                                                    title="Contact & Admission Details" 
-                                                    isOpen={activeTabs[s.id] === 'profile'} 
-                                                    onToggle={() => toggleTab(s.id, 'profile')}
-                                                >
-                                                    <div className="space-y-4">
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                            <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-2.5">
-                                                                <div className="flex items-center space-x-2"><Mail size={14} className="text-amber-500" /><span className="text-[10px] text-slate-400 font-medium">Email</span></div>
-                                                                <span className="text-xs font-semibold text-slate-700 break-all pl-2 text-right">{s.student_email}</span>
-                                                            </div>
-                                                            <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-2.5">
-                                                                <div className="flex items-center space-x-2"><Phone size={14} className="text-amber-500" /><span className="text-[10px] text-slate-400 font-medium">Mobile</span></div>
-                                                                <span className="text-xs font-semibold text-slate-700">{s.student_mobile}</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                            <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-2.5">
-                                                                <span className="text-[10px] text-slate-400 font-medium">Admission Mode</span>
-                                                                <span className="text-xs font-semibold text-slate-700">{s.admission_mode || '—'}</span>
-                                                            </div>
-                                                            <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-2.5">
-                                                                <span className="text-[10px] text-slate-400 font-medium">Admission Type</span>
-                                                                <span className="text-xs font-semibold text-slate-700">{s.admission_type || '—'}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </AccordionTab>
-
-                                                <AccordionTab 
-                                                    title="Fee Details" 
-                                                    isOpen={activeTabs[s.id] === 'fee'} 
-                                                    onToggle={() => toggleTab(s.id, 'fee')}
-                                                >
-                                                    <TeacherFeeViewer rollNo={s.student_roll_no} admissionYear={s.year_of_admission} />
-                                                </AccordionTab>
-
-                                                <AccordionTab 
-                                                    title="Pre-PhD Coursework Results" 
-                                                    isOpen={activeTabs[s.id] === 'coursework'} 
-                                                    onToggle={() => toggleTab(s.id, 'coursework')}
-                                                >
-                                                    <TeacherCourseworkResultViewer rollNo={s.student_roll_no} />
-                                                </AccordionTab>
-
-                                                <AccordionTab 
-                                                    title="Progress Reports" 
-                                                    isOpen={activeTabs[s.id] === 'progress'} 
-                                                    onToggle={() => toggleTab(s.id, 'progress')}
-                                                    badge="Coming Soon"
-                                                >
-                                                    <p className="text-sm text-slate-500 text-center py-2 italic cursor-crosshair">Module in development</p>
-                                                </AccordionTab>
-
+                                            <div className="border-t border-slate-100 px-5 py-6 bg-slate-50/60">
+                                                <div className="flex flex-col sm:flex-row items-center gap-3">
+                                                    <button 
+                                                        onClick={() => setViewingStudentDetails(s)}
+                                                        className="flex-1 w-full flex items-center justify-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-lg shadow-slate-200"
+                                                    >
+                                                        <User size={16} />
+                                                        <span>View Full Detail</span>
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setAssigningCourseworkTo(s)}
+                                                        className={`flex-1 w-full flex items-center justify-center space-x-2 px-6 py-3 rounded-xl text-sm font-bold transition-all border
+                                                            ${s.has_coursework 
+                                                                ? 'bg-white border-blue-200 text-blue-600 hover:bg-blue-50' 
+                                                                : 'bg-white border-amber-200 text-amber-600 hover:bg-amber-50'}`}
+                                                    >
+                                                        <BookOpen size={16} />
+                                                        <span>{s.has_coursework ? 'Coursework Assigned' : 'Assign Coursework'}</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </motion.div>
                                     )}
@@ -766,6 +664,15 @@ const MyStudents = ({ email }) => {
                     onClose={() => setAssigningCourseworkTo(null)}
                 />
             )}
+
+            <AnimatePresence>
+                {viewingStudentDetails && (
+                    <StudentDetailsModal
+                        student={viewingStudentDetails}
+                        onClose={() => setViewingStudentDetails(null)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 };
@@ -1013,7 +920,12 @@ const TeacherDashboard = () => {
         }
     };
 
-    useEffect(() => { loadProfile(); }, []);
+    useEffect(() => { 
+        loadProfile(); 
+        // Sync body background
+        document.body.style.backgroundColor = '#0f172a'; // slate-900
+        return () => { document.body.style.backgroundColor = ''; };
+    }, []);
 
     const onProfileComplete = async () => {
         setShowModal(false);
@@ -1055,7 +967,7 @@ const TeacherDashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-900 flex text-slate-100">
+        <div className="h-screen overflow-hidden bg-slate-900 flex text-slate-100">
             {/* Modal  */}
             {showModal && (
                 <TeacherRegistrationModal
@@ -1065,7 +977,7 @@ const TeacherDashboard = () => {
             )}
 
             {/* ── Sidebar ──────────────────────────────── */}
-            <aside className="w-60 bg-gradient-to-b from-amber-900 to-amber-950 flex flex-col min-h-screen fixed top-0 left-0 z-30 shadow-2xl border-r border-amber-800/50">
+            <aside className="w-60 bg-gradient-to-b from-amber-900 to-amber-950 flex flex-col h-screen fixed top-0 left-0 z-30 shadow-2xl border-r border-amber-800/50 overscroll-none">
                 {/* Logo */}
                 <div className="px-5 pt-7 pb-6">
                     <div className="flex flex-col items-center space-y-3">
@@ -1103,7 +1015,7 @@ const TeacherDashboard = () => {
             </aside>
 
             {/* ── Main Content ──────────────────────────── */}
-            <main className="flex-1 ml-60 min-h-screen flex flex-col">
+            <main className="flex-1 ml-60 h-screen overflow-y-auto bg-slate-900 overscroll-none">
                 {/* Welcome banner */}
                 <div className="bg-gradient-to-r from-amber-900/60 to-slate-800 mx-6 mt-6 rounded-2xl p-6 flex items-center justify-between shadow-lg border border-amber-800/30 overflow-hidden relative">
                     <div className="relative z-10">

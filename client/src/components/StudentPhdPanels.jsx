@@ -124,7 +124,7 @@ export const StudentPhdPresentationPanel = ({ profile }) => {
     );
 
     return (
-        <div className="space-y-6 max-w-4xl">
+        <div className="space-y-6 w-full">
             <div>
                 <h2 className="text-2xl font-bold text-slate-800">PhD Registration Presentation</h2>
                 <p className="text-slate-500 mt-1">Review the outcomes of your synopsis presentations.</p>
@@ -156,10 +156,10 @@ export const StudentPhdPresentationPanel = ({ profile }) => {
                                 </a>
                             </div>
                             
-                            {p.observation_message && (
+                            {p.remarks && (
                                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1.5">Observations / Remarks</p>
-                                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{p.observation_message}</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1.5">Official Remarks</p>
+                                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{p.remarks}</p>
                                 </div>
                             )}
                         </div>
@@ -245,6 +245,132 @@ export const StudentPhdLetterPanel = ({ profile }) => {
                     </div>
                 ))}
             </div>
+        </div>
+    );
+};
+// ── Student PHD Progress Report View ──────────────────────────────────────────
+export const StudentPhdProgressPanel = ({ profile }) => {
+    const [reports, setReports] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const getMonthName = (m) => {
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const idx = parseInt(m) - 1;
+        return months[idx] || m;
+    };
+
+    useEffect(() => {
+        const fetchReports = async () => {
+            try {
+                const res = await fetch(`http://localhost:5001/api/phd/progress-reports?roll_no=${encodeURIComponent(profile.roll_no)}`);
+                const data = await res.json();
+                if (res.ok) setReports(data.reports);
+            } catch (err) { console.error(err); }
+            finally { setLoading(false); }
+        };
+        fetchReports();
+    }, [profile]);
+
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-3">
+            <Loader2 className="animate-spin" size={24} />
+            <p className="text-sm">Loading progress records...</p>
+        </div>
+    );
+
+    const acceptedCount = reports.filter(r => r.is_present && r.verdict === 'Accepted').length;
+
+    return (
+        <div className="space-y-6 w-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-800">PhD Progress Reports</h2>
+                    <p className="text-slate-500 mt-1">Timeline of your periodic progress evaluations.</p>
+                </div>
+                {/* Summary Stat */}
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-5 py-3 flex items-center space-x-4 shadow-sm">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                        <CheckCircle size={20} className="text-emerald-600" />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Accepted Reports</p>
+                        <p className="text-xl font-black text-slate-800">{acceptedCount}</p>
+                    </div>
+                </div>
+            </div>
+
+            {reports.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
+                        <LayoutList size={28} className="text-slate-300" />
+                    </div>
+                    <p className="text-slate-600 font-medium">No Progress Reports Yet</p>
+                    <p className="text-sm text-slate-400 mt-1">Your periodic progress reports have not been uploaded yet.</p>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    {reports.map((r) => (
+                        <div key={r.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col sm:flex-row">
+                            {/* Attendance & Verdict Sidebar */}
+                            <div className={`p-6 sm:w-48 flex flex-col items-center justify-center text-center border-b sm:border-b-0 sm:border-r ${!r.is_present ? 'bg-red-50 border-red-100' : (r.verdict === 'Accepted' ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100')}`}>
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${!r.is_present ? 'bg-red-100 text-red-600' : (r.verdict === 'Accepted' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600')}`}>
+                                    {r.is_present ? <CheckCircle size={24} /> : <div className="text-xl font-bold">A</div>}
+                                </div>
+                                <h3 className={`text-lg font-bold ${!r.is_present ? 'text-red-700' : (r.verdict === 'Accepted' ? 'text-emerald-700' : 'text-rose-700')}`}>
+                                    {!r.is_present ? 'Absent' : r.verdict}
+                                </h3>
+                                <p className="text-[10px] text-slate-500 mt-1 font-bold tracking-widest uppercase">{!r.is_present ? 'Attendance' : 'Outcome'}</p>
+                            </div>
+
+                            {/* Details Area */}
+                            <div className="p-6 flex-1 space-y-5">
+                                {/* Header / Timing */}
+                                <div className="flex flex-wrap items-center justify-between gap-4">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="px-3 py-1.5 bg-slate-900 rounded-lg flex items-center space-x-2">
+                                            <Calendar size={14} className="text-emerald-400" />
+                                            <span className="text-xs font-bold text-white uppercase">{getMonthName(r.from_month)} {r.from_year}</span>
+                                        </div>
+                                        <div className="w-3 h-px bg-slate-300" />
+                                        <div className="px-3 py-1.5 bg-slate-900 rounded-lg flex items-center space-x-2">
+                                            <Calendar size={14} className="text-emerald-400" />
+                                            <span className="text-xs font-bold text-white uppercase">{getMonthName(r.to_month)} {r.to_year}</span>
+                                        </div>
+                                    </div>
+                                    {r.is_present && r.report_pdf_path && (
+                                        <a href={`http://localhost:5001/${r.report_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                            className="flex items-center space-x-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all text-sm font-bold border border-blue-100/50">
+                                            <FileText size={16} /><span>View Report</span><ExternalLink size={14} />
+                                        </a>
+                                    )}
+                                </div>
+
+                                {/* Content Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {r.is_present ? (
+                                        <div className="md:col-span-2 bg-slate-50 rounded-xl p-3 border border-slate-100">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Report Details</p>
+                                            <p className="text-sm text-slate-700">No: <span className="font-bold text-slate-900">{r.report_number}</span></p>
+                                            <p className="text-sm text-slate-700 mt-0.5">Dated: <span className="font-bold text-slate-900">{new Date(r.presentation_date).toLocaleDateString('en-GB')}</span></p>
+                                        </div>
+                                    ) : (
+                                        <div className="md:col-span-2 bg-red-50/50 rounded-xl p-3 border border-red-100">
+                                            <p className="text-sm text-red-700 font-medium">The student was marked absent for this progress report evaluation period.</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {r.remarks && (
+                                    <div className="border-t border-slate-100 pt-4">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Official Remarks</p>
+                                        <p className="text-sm text-slate-600 leading-relaxed">{r.remarks}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

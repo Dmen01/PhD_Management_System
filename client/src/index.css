@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+@layer base {
+  html, body {
+    @apply h-full bg-slate-950 overscroll-none overflow-x-hidden;
+    /* Prevent rubber-band scroll on mobile/mac */
+    overscroll-behavior: none;
+  }
+
+  #root {
+    @apply h-full;
+  }
+}

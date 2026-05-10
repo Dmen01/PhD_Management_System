@@ -5,7 +5,7 @@ import { User, CreditCard, BookOpen, ChevronDown, ClipboardList, BarChart2, LogO
 import StudentRegistrationModal from './StudentRegistrationModal';
 import StudentProfile from './StudentProfile';
 import FeeDetails from './FeeDetails';
-import { StudentSacMembersPanel, StudentPhdPresentationPanel, StudentPhdLetterPanel } from './StudentPhdPanels';
+import { StudentSacMembersPanel, StudentPhdPresentationPanel, StudentPhdLetterPanel, StudentPhdProgressPanel } from './StudentPhdPanels';
 
 // ── Reusable Notification Bell Panel ───────────────────────────────────────
 const NotificationBell = ({ fetchUrl, accentColor = 'blue' }) => {
@@ -617,6 +617,7 @@ const renderPanel = (active, profileData) => {
         case 'sac-members':         return profileData ? <StudentSacMembersPanel profile={profileData} /> : null;
         case 'phd-presentation':    return profileData ? <StudentPhdPresentationPanel profile={profileData} /> : null;
         case 'phd-letter':          return profileData ? <StudentPhdLetterPanel profile={profileData} /> : null;
+        case 'phd-progress':        return profileData ? <StudentPhdProgressPanel profile={profileData} /> : null;
         default:                    return null;
     }
 };
@@ -647,7 +648,8 @@ const StudentDashboard = () => {
             children: [
                 { id: 'sac-members', label: 'My SAC Members', icon: Users },
                 { id: 'phd-presentation', label: 'PHD Registration Presentation', icon: LayoutList },
-                { id: 'phd-letter', label: 'PHD Registration Letter', icon: FileText }
+                { id: 'phd-letter', label: 'PHD Registration Letter', icon: FileText },
+                { id: 'phd-progress', label: 'PHD Progress Report', icon: ClipboardList }
             ]
         }
     ];
@@ -655,6 +657,9 @@ const StudentDashboard = () => {
     useEffect(() => {
         if (!studentEmail) { navigate('/login/student'); return; }
         checkProfile();
+        // Sync body background to match dashboard theme
+        document.body.style.backgroundColor = '#f0f4ff';
+        return () => { document.body.style.backgroundColor = ''; };
     }, []);
 
     const checkProfile = async () => {
@@ -686,13 +691,13 @@ const StudentDashboard = () => {
     const firstName = profileData?.first_name || '';
 
     return (
-        <div className="min-h-screen bg-[#f0f4ff] flex text-slate-800">
+        <div className="h-screen overflow-hidden bg-[#f0f4ff] flex text-slate-800">
             {showModal && (
                 <StudentRegistrationModal email={studentEmail} onComplete={() => { setShowModal(false); checkProfile(); }} />
             )}
 
             {/* ── Sidebar ─────────────────────────────── */}
-            <aside className="w-60 bg-gradient-to-b from-[#3345cc] to-[#2236b8] flex flex-col min-h-screen fixed top-0 left-0 z-30 shadow-2xl shadow-blue-900/30">
+            <aside className="w-60 bg-gradient-to-b from-[#3345cc] to-[#2236b8] flex flex-col h-screen fixed top-0 left-0 z-30 shadow-2xl shadow-blue-900/30 overscroll-none">
                 {/* Logo */}
                 <div className="px-5 pt-7 pb-6">
                     <div className="flex flex-col items-center space-y-3">
@@ -727,7 +732,7 @@ const StudentDashboard = () => {
             </aside>
 
             {/* ── Main Content ─────────────────────────── */}
-            <main className="flex-1 ml-60 min-h-screen flex flex-col">
+            <main className="flex-1 ml-60 h-screen overflow-y-auto bg-[#f0f4ff] overscroll-none">
                 {/* Welcome banner */}
                 <div className="bg-gradient-to-r from-[#3345cc] to-[#4f6ef7] mx-6 mt-6 rounded-2xl p-6 flex items-center justify-between shadow-lg shadow-blue-400/20 overflow-hidden relative">
                     <div className="relative z-10">

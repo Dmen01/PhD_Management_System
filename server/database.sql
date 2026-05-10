@@ -166,3 +166,21 @@ CREATE TABLE IF NOT EXISTS phd_registration_letters (
   registration_number VARCHAR(100) NOT NULL,
   uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- PhD Progress Reports
+CREATE TABLE IF NOT EXISTS phd_progress_reports (
+  id SERIAL PRIMARY KEY,
+  roll_no VARCHAR(50) NOT NULL REFERENCES student_master(roll_no) ON DELETE CASCADE,
+  from_month INTEGER NOT NULL CHECK (from_month >= 1 AND from_month <= 12),
+  from_year INTEGER NOT NULL,
+  to_month INTEGER NOT NULL CHECK (to_month >= 1 AND to_month <= 12),
+  to_year INTEGER NOT NULL,
+  is_present BOOLEAN NOT NULL DEFAULT TRUE,
+  report_number VARCHAR(50),
+  presentation_date DATE,
+  report_pdf_path VARCHAR(500),
+  verdict VARCHAR(50) CHECK (verdict IN ('Accepted', 'Rejected')),
+  remarks TEXT,
+  observations TEXT,
+  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
