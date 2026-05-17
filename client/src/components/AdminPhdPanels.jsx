@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Loader2, FileText, ExternalLink, Trash2, Send, Upload, User, LayoutList, Calendar, CheckSquare, Square } from 'lucide-react';
+import { Loader2, FileText, ExternalLink, Trash2, Send, Upload, User, LayoutList, Calendar, CheckSquare, Square, Plus, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ── PhD Registration Presentation Panel ───────────────────────────────────────
@@ -819,6 +819,332 @@ export const PhdProgressReportPanel = () => {
                     </div>
                 )}
             </div>
+        </div>
+    );
+};
+
+// ── Admin PHD Pre-Submission Presentation Panel ────────────────────────────────
+export const AdminPreSubmissionPanel = () => {
+    const [allStudents, setAllStudents] = useState([]);
+    const [filteredStudents, setFilteredStudents] = useState([]);
+    const [yearFilter, setYearFilter] = useState('');
+    const [selectedStudent, setSelectedStudent] = useState('');
+    const [approvedProgressCount, setApprovedProgressCount] = useState(0);
+    const [preSubmissions, setPreSubmissions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    
+    // Form for Admin to add details to the student's submission
+    const [file, setFile] = useState(null);
+    const [form, setForm] = useState({
+        presentation_date: '',
+        remark: 'Accepted'
+    });
+    const [committeeMembers, setCommitteeMembers] = useState([]);
+    const [newMember, setNewMember] = useState({ name: '', designation: '', department: '' });
+    const [formError, setFormError] = useState('');
+    const [formSuccess, setFormSuccess] = useState('');
+
+    const fetchData = async () => {
+        try {
+            const res = await fetch('http://localhost:5001/api/phd/eligible-presubmission-students');
+            const data = await res.json();
+            if (res.ok) {
+                setAllStudents(data.students);
+                setFilteredStudents(data.students);
+            }
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
+    };
+
+    const fetchStudentData = async (rollNo) => {
+        if (!rollNo) {
+            setPreSubmissions([]);
+            setApprovedProgressCount(0);
+            return;
+        }
+        try {
+            const [pRes, countRes] = await Promise.all([
+                fetch(`http://localhost:5001/api/phd/pre-submissions?roll_no=${rollNo}`),
+                fetch(`http://localhost:5001/api/phd/pre-submissions/progress-count/${rollNo}`)
+            ]);
+            if (pRes.ok) {
+                const data = await pRes.json();
+                setPreSubmissions(data.preSubmissions);
+            }
+            if (countRes.ok) {
+                const data = await countRes.json();
+                setApprovedProgressCount(data.count);
+            }
+        } catch (err) { console.error(err); }
+    };
+
+    useEffect(() => { fetchData(); }, []);
+
+    useEffect(() => {
+        if (yearFilter) {
+            setFilteredStudents(allStudents.filter(s => s.year_of_admission.toString() === yearFilter));
+        } else {
+            setFilteredStudents(allStudents);
+        }
+    }, [yearFilter, allStudents]);
+
+    useEffect(() => {
+        fetchStudentData(selectedStudent);
+        setFormError('');
+        setFormSuccess('');
+    }, [selectedStudent]);
+
+    const handleAddMember = () => {
+        if (!newMember.name || !newMember.designation || !newMember.department) {
+            setFormError('Please fill all committee member details');
+            return;
+        }
+        if (committeeMembers.length >= 10) {
+            setFormError('Maximum 10 committee members allowed');
+            return;
+        }
+        setCommitteeMembers([...committeeMembers, newMember]);
+        setNewMember({ name: '', designation: '', department: '' });
+        setFormError('');
+    };
+
+    const handleRemoveMember = (idx) => {
+        setCommitteeMembers(committeeMembers.filter((_, i) => i !== idx));
+    };
+
+    const handleFile = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        if (f.type !== 'application/pdf') { setFormError('Only PDF files are accepted'); setFile(null); return; }
+        if (f.size > 20 * 1024 * 1024) { setFormError('File size must be under 20 MB'); setFile(null); return; }
+        setFormError('');
+        setFile(f);
+    };
+
+    const handleSubmitAdminDetails = async (e) => {
+        e.preventDefault();
+        setFormError(''); setFormSuccess('');
+        
+        if (!file) return setFormError('Please upload the synopsis report.');
+        if (!form.presentation_date) return setFormError('Please select a presentation date.');
+        if (committeeMembers.length === 0) return setFormError('Please add at least one committee member.');
+
+        const body = new FormData();
+        body.append('roll_no', selectedStudent);
+        body.append('synopsis', file);
+        body.append('presentation_date', form.presentation_date);
+        body.append('committee_members', JSON.stringify(committeeMembers));
+        body.append('remark', form.remark);
+
+        setSubmitting(true);
+        try {
+            const res = await fetch(`http://localhost:5001/api/phd/admin/pre-submissions`, {
+                method: 'POST',
+                body
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                setFormSuccess('Pre-submission recorded successfully!');
+                setForm({ presentation_date: '', remark: 'Accepted' });
+                setCommitteeMembers([]);
+                setFile(null);
+                fetchStudentData(selectedStudent);
+                setTimeout(() => setFormSuccess(''), 3000);
+            } else {
+                setFormError(data.message || 'Submission failed.');
+            }
+        } catch {
+            setFormError('Failed to connect to server.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-xl font-bold text-white">Pre-Submission Presentation</h2>
+                <p className="text-slate-400 text-sm mt-1">Manage pre submission reports and presentations.</p>
+            </div>
+
+            <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {/* Filter by Year */}
+                    <div>
+                        <label className="block text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wide">Filter by Admission Year</label>
+                        <select
+                            value={yearFilter}
+                            onChange={e => setYearFilter(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-emerald-500 transition-all"
+                        >
+                            <option value="">All Years</option>
+                            {[...new Set(allStudents.map(s => s.year_of_admission))].sort((a,b)=>b-a).map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Student Select */}
+                    <div>
+                        <label className="block text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wide">
+                            Select Student
+                            {loading && <Loader2 size={10} className="inline ml-2 animate-spin text-emerald-400" />}
+                        </label>
+                        <select
+                            value={selectedStudent}
+                            onChange={e => setSelectedStudent(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-emerald-500 transition-all"
+                        >
+                            <option value="">{loading ? 'Loading students...' : '— Select a student —'}</option>
+                            {filteredStudents.map(s => (
+                                <option key={s.roll_no} value={s.roll_no}>{s.first_name} {s.last_name} ({s.roll_no})</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                {selectedStudent && (
+                    <div className="mt-4 p-4 bg-slate-900/50 rounded-xl border border-slate-700 flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-slate-300">Approved Progress Reports for this student:</p>
+                        </div>
+                        <div className="bg-emerald-900/30 text-emerald-400 px-4 py-2 rounded-lg font-bold border border-emerald-800/50">
+                            {approvedProgressCount}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {selectedStudent && (
+                <form onSubmit={handleSubmitAdminDetails} className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 space-y-5">
+                    <div className="border-b border-slate-700 pb-4">
+                        <h3 className="text-sm font-semibold text-slate-300">Record Pre-Submission Presentation</h3>
+                        <p className="text-xs text-slate-400 mt-1">Upload the pre submission report and record committee details and outcomes.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        {/* File Upload */}
+                        <div className="sm:col-span-2">
+                            <label className="block text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wide">Pre Submission Report (PDF, Max 20MB) <span className="text-red-400">*</span></label>
+                            <input 
+                                type="file" 
+                                accept="application/pdf"
+                                onChange={handleFile}
+                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600/20 file:text-emerald-400 hover:file:bg-emerald-600/30 transition-all"
+                            />
+                        </div>
+                        {/* Date */}
+                        <div>
+                            <label className="block text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wide">Date of Presentation <span className="text-red-400">*</span></label>
+                            <input
+                                type="date"
+                                value={form.presentation_date}
+                                onChange={e => setForm(f => ({ ...f, presentation_date: e.target.value }))}
+                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-emerald-500 transition-all cursor-pointer"
+                            />
+                        </div>
+
+                        {/* Remark */}
+                        <div>
+                            <label className="block text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wide">Presentation Outcome <span className="text-red-400">*</span></label>
+                            <select
+                                value={form.remark}
+                                onChange={e => setForm(f => ({ ...f, remark: e.target.value }))}
+                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-emerald-500 transition-all"
+                            >
+                                <option value="Accepted">Accepted</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+
+                        {/* Committee Members */}
+                        <div className="sm:col-span-2 space-y-3">
+                            <label className="block text-xs text-slate-400 font-semibold uppercase tracking-wide">Committee Members (Max 10) <span className="text-red-400">*</span></label>
+                            
+                            {/* Add Member Form */}
+                            <div className="flex items-start space-x-2 bg-slate-900 p-3 rounded-xl border border-slate-700">
+                                <input type="text" placeholder="Name" value={newMember.name} onChange={e => setNewMember({...newMember, name: e.target.value})} className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" />
+                                <input type="text" placeholder="Designation" value={newMember.designation} onChange={e => setNewMember({...newMember, designation: e.target.value})} className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" />
+                                <input type="text" placeholder="Department" value={newMember.department} onChange={e => setNewMember({...newMember, department: e.target.value})} className="flex-1 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-emerald-500" />
+                                <button type="button" onClick={handleAddMember} className="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded-lg flex-shrink-0 transition-colors">
+                                    <Plus size={18} />
+                                </button>
+                            </div>
+
+                            {/* Member List */}
+                            {committeeMembers.length > 0 && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                                    {committeeMembers.map((m, idx) => (
+                                        <div key={idx} className="flex items-center justify-between bg-slate-800 border border-slate-700 p-2 rounded-lg">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-semibold text-white">{m.name}</span>
+                                                <span className="text-xs text-slate-400">{m.designation}, {m.department}</span>
+                                            </div>
+                                            <button type="button" onClick={() => handleRemoveMember(idx)} className="text-red-400 hover:text-red-300 p-1">
+                                                <Minus size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {formError && <p className="text-red-400 text-sm mt-2">{formError}</p>}
+                    {formSuccess && <p className="text-emerald-400 text-sm mt-2">{formSuccess}</p>}
+
+                    <div className="pt-2">
+                        <button type="submit" disabled={submitting || !file}
+                            className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors">
+                            {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+                            <span>{submitting ? 'Submitting...' : 'Upload Pre-Submission Details'}</span>
+                        </button>
+                    </div>
+                </form>
+            )}
+
+            {selectedStudent && preSubmissions.length > 0 && (
+                <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">Presentation Logs</h3>
+                    <div className="grid grid-cols-1 gap-4">
+                        {preSubmissions.map(p => (
+                            <div key={p.id} className="bg-slate-800/40 border border-slate-700 rounded-xl p-5 flex flex-col md:flex-row gap-4">
+                                <div className="flex-1 space-y-3">
+                                    <div className="flex items-center space-x-3">
+                                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${!p.remark ? 'bg-amber-900/40 text-amber-400 border border-amber-800/50' : (p.remark === 'Accepted' ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-800/50' : 'bg-red-900/40 text-red-400 border border-red-800/50')}`}>
+                                            {p.remark || 'Pending Review'}
+                                        </span>
+                                        {p.presentation_date && (
+                                            <div className="flex items-center space-x-1.5 text-sm text-slate-300">
+                                                <Calendar size={14} className="text-slate-500" />
+                                                <span>{new Date(p.presentation_date).toLocaleDateString('en-GB')}</span>
+                                            </div>
+                                        )}
+                                        <a href={`http://localhost:5001/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                            className="flex items-center space-x-1.5 text-xs font-semibold px-2 py-1 bg-slate-700 hover:bg-slate-600 text-emerald-400 rounded-lg transition-colors">
+                                            <FileText size={12} /><span>View Report</span>
+                                        </a>
+                                    </div>
+                                    {p.committee_members && p.committee_members.length > 0 && (
+                                        <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-800">
+                                            <p className="text-xs text-slate-500 mb-2 uppercase tracking-wide font-semibold">Committee Members</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {p.committee_members.map((m, idx) => (
+                                                    <span key={idx} className="bg-slate-800 border border-slate-700 text-slate-300 text-xs px-2 py-1 rounded">
+                                                        {m.name} ({m.designation})
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

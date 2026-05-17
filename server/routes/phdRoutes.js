@@ -14,7 +14,15 @@ import {
     uploadProgressReportMiddleware,
     uploadProgressReport,
     getProgressReports,
-    deleteProgressReport
+    deleteProgressReport,
+    uploadPreSubmissionMiddleware,
+    getPreSubmissions,
+    getApprovedProgressCount,
+    getEligiblePreSubmissionStudents,
+    adminCreatePreSubmission,
+    uploadExtendedSynopsis,
+    getExtendedSynopsis,
+    updatePreSubmissionAdmin
 } from '../controllers/phdController.js';
 
 const router = express.Router();
@@ -23,6 +31,7 @@ const router = express.Router();
 router.get('/eligible-presentation-students', getEligiblePresentationStudents);
 router.get('/eligible-letter-students', getEligibleLetterStudents);
 router.get('/eligible-progress-students', getEligibleProgressStudents);
+router.get('/eligible-presubmission-students', getEligiblePreSubmissionStudents);
 
 // PHD Registration Presentation 
 router.post('/presentations', uploadPresentationMiddleware.single('synopsis'), uploadPresentation);
@@ -38,5 +47,15 @@ router.delete('/letters/:id', deleteLetter);
 router.post('/progress-reports', uploadProgressReportMiddleware.single('report'), uploadProgressReport);
 router.get('/progress-reports', getProgressReports);
 router.delete('/progress-reports/:id', deleteProgressReport);
+
+// PHD Pre-Submission Presentations (Admin)
+router.post('/admin/pre-submissions', uploadPreSubmissionMiddleware.single('synopsis'), adminCreatePreSubmission);
+router.put('/pre-submissions/:id', updatePreSubmissionAdmin);
+router.get('/pre-submissions', getPreSubmissions);
+router.get('/pre-submissions/progress-count/:roll_no', getApprovedProgressCount);
+
+// PHD Extended Synopsis (Student)
+router.post('/extended-synopses', uploadPreSubmissionMiddleware.single('synopsis'), uploadExtendedSynopsis);
+router.get('/extended-synopses', getExtendedSynopsis);
 
 export default router;

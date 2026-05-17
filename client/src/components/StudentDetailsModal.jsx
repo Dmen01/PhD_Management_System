@@ -336,6 +336,88 @@ const ModalProgressView = ({ rollNo }) => {
     );
 };
 
+const ModalPreSubmissionView = ({ rollNo }) => {
+    const [synopses, setSynopses] = useState([]);
+    const [presentations, setPresentations] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const [synRes, presRes] = await Promise.all([
+                    fetch(`http://localhost:5001/api/phd/extended-synopses?roll_no=${encodeURIComponent(rollNo)}`),
+                    fetch(`http://localhost:5001/api/phd/pre-submissions?roll_no=${encodeURIComponent(rollNo)}`)
+                ]);
+                if (synRes.ok) { const d = await synRes.json(); setSynopses(d.synopses); }
+                if (presRes.ok) { const d = await presRes.json(); setPresentations(d.preSubmissions); }
+            } catch (err) { console.error(err); }
+            finally { setLoading(false); }
+        };
+        load();
+    }, [rollNo]);
+
+    if (loading) return <Loader2 className="animate-spin text-slate-400 mx-auto" />;
+
+    return (
+        <div className="space-y-6">
+            {/* Extended Synopsis Section */}
+            <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Extended Synopsis (Student Upload)</p>
+                {synopses.length === 0
+                    ? <p className="text-xs text-slate-400 italic py-3">No extended synopsis uploaded.</p>
+                    : synopses.map(s => (
+                        <div key={s.id} className="flex items-center justify-between bg-emerald-50 border border-emerald-100 rounded-xl p-3 mb-2">
+                            <div>
+                                <p className="text-xs font-bold text-emerald-700">Submitted</p>
+                                <p className="text-[10px] text-slate-500 mt-0.5">{new Date(s.uploaded_at).toLocaleDateString('en-GB')}</p>
+                            </div>
+                            <a href={`http://localhost:5001/${s.file_path}`} target="_blank" rel="noopener noreferrer"
+                                className="flex items-center space-x-1.5 text-xs font-bold text-blue-600 hover:underline">
+                                <FileText size={14} /><span>View PDF</span>
+                            </a>
+                        </div>
+                    ))
+                }
+            </div>
+
+            {/* Pre-Submission Presentation Section */}
+            <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Pre-Submission Presentation (Admin Record)</p>
+                {presentations.length === 0
+                    ? <p className="text-xs text-slate-400 italic py-3">No pre-submission presentation recorded.</p>
+                    : presentations.map(p => (
+                        <div key={p.id} className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm mb-3">
+                            <div className={`px-4 py-2 flex items-center justify-between ${p.remark === 'Accepted' ? 'bg-emerald-50' : 'bg-red-50'}`}>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">{p.presentation_date ? new Date(p.presentation_date).toLocaleDateString('en-GB') : 'No Date Set'}</span>
+                                <span className={`text-[10px] font-bold uppercase ${p.remark === 'Accepted' ? 'text-emerald-600' : 'text-red-600'}`}>{p.remark}</span>
+                            </div>
+                            <div className="p-4 space-y-3">
+                                <a href={`http://localhost:5001/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                   className="flex items-center space-x-1.5 text-xs font-bold text-blue-600 hover:underline">
+                                    <FileText size={14} /><span>View Pre-Submission Report</span>
+                                </a>
+                                {p.committee_members && p.committee_members.length > 0 && (
+                                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 mt-2">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Committee Members</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            {p.committee_members.map((m, idx) => (
+                                                <div key={idx} className="flex flex-col">
+                                                    <span className="text-xs font-bold text-slate-700">{m.name}</span>
+                                                    <span className="text-[10px] text-slate-500">{m.designation}, {m.department}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))
+                }
+            </div>
+        </div>
+    );
+};
+
 // ── Main Modal Component ──────────────────────────────────────────────────────
 
 const StudentDetailsModal = ({ student, onClose }) => {
@@ -353,6 +435,7 @@ const StudentDetailsModal = ({ student, onClose }) => {
         { id: 'presentation',label: 'Registration Pres.', icon: LayoutList },
         { id: 'letter',     label: 'Registration Letter',icon: FileText },
         { id: 'progress',   label: 'Progress Reports',   icon: ClipboardList },
+        { id: 'pre-submission', label: 'Pre-Submission', icon: Target },
     ];
 
     const [activePhdSub, setActivePhdSub] = useState('sac');
@@ -488,6 +571,7 @@ const StudentDetailsModal = ({ student, onClose }) => {
                                             {activePhdSub === 'presentation' && <ModalPresentationView rollNo={rollNo} />}
                                             {activePhdSub === 'letter' && <ModalLetterView rollNo={rollNo} />}
                                             {activePhdSub === 'progress' && <ModalProgressView rollNo={rollNo} />}
+                                            {activePhdSub === 'pre-submission' && <ModalPreSubmissionView rollNo={rollNo} />}
                                         </div>
                                     </div>
                                 )}

@@ -66,6 +66,25 @@ export const uploadProgressReportMiddleware = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
 });
 
+const storagePreSubmission = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = 'uploads/phd_pre_submissions';
+        fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const { roll_no } = req.body;
+        const ext = path.extname(file.originalname);
+        cb(null, `${roll_no}_presubmission_${Date.now()}${ext}`);
+    }
+});
+
+export const uploadPreSubmissionMiddleware = multer({ 
+    storage: storagePreSubmission, 
+    fileFilter, 
+    limits: { fileSize: 20 * 1024 * 1024 } // 20MB max
+});
+
 
 // ── Controllers ───────────────────────────────────────────────────────────────
 
@@ -96,7 +115,7 @@ export const getEligibleLetterStudents = async (req, res) => {
         res.json({ students: result.rows });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server error fetching eligible students for letters' });
+        res.status(500).json({ message: 'Server error fetching eligible students for letter' });
     }
 };
 
@@ -112,7 +131,22 @@ export const getEligibleProgressStudents = async (req, res) => {
         res.json({ students: result.rows });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server error fetching eligible students for progress reports' });
+        res.status(500).json({ message: 'Server error fetching eligible students for progress report' });
+    }
+};
+
+export const getEligiblePreSubmissionStudents = async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT DISTINCT sm.roll_no, sm.first_name, sm.last_name, sm.email, sm.year_of_admission
+            FROM student_master sm
+            JOIN phd_registration_letters prl ON sm.roll_no = prl.roll_no
+            ORDER BY sm.first_name ASC
+        `);
+        res.json({ students: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching eligible students for pre-submission' });
     }
 };
 
@@ -352,5 +386,141 @@ export const deleteProgressReport = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error deleting progress report' });
+    }
+};
+
+// ── Pre-Submission Presentations ─────────────────────────────────────────────
+
+export const uploadExtendedSynopsis = async (req, res) => {
+    const { roll_no } = req.body;
+    if (!req.file) return res.status(400).json({ message: 'Extended synopsis PDF is required' });
+    if (!roll_no) {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: 'Roll number is required' });
+    }
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO phd_extended_synopses (roll_no, file_path) VALUES ($1, $2) RETURNING *`,
+            [roll_no, req.file.path]
+        );
+        res.status(201).json({ message: 'Extended synopsis uploaded successfully', synopsis: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        if (req.file) fs.unlinkSync(req.file.path);
+        res.status(500).json({ message: 'Server error uploading extended synopsis' });
+    }
+};
+
+export const getExtendedSynopsis = async (req, res) => {
+    const { roll_no } = req.query;
+    try {
+        if (!roll_no) return res.status(400).json({ message: 'Roll number is required' });
+        const result = await pool.query(`SELECT * FROM phd_extended_synopses WHERE roll_no = $1 ORDER BY uploaded_at DESC`, [roll_no]);
+        res.json({ synopses: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching extended synopsis' });
+    }
+};
+
+export const adminCreatePreSubmission = async (req, res) => {
+    const { roll_no, presentation_date, committee_members, remark } = req.body;
+    
+    if (!req.file) return res.status(400).json({ message: 'Extended synopsis PDF is required' });
+    if (!roll_no || !presentation_date || !remark) {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: 'Roll number, presentation date, and remark are required' });
+    }
+
+    try {
+        let parsedCommittee = [];
+        try {
+            parsedCommittee = committee_members ? JSON.parse(committee_members) : [];
+        } catch (e) {
+            console.error('Error parsing committee_members', e);
+        }
+
+        const result = await pool.query(
+            `INSERT INTO phd_pre_submissions (roll_no, synopsis_pdf_path, presentation_date, committee_members, remark, admin_updated_at)
+             VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) RETURNING *`,
+            [roll_no, req.file.path, presentation_date, JSON.stringify(parsedCommittee), remark]
+        );
+        res.status(201).json({ message: 'Pre-submission recorded successfully', preSubmission: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        if (req.file) fs.unlinkSync(req.file.path);
+        res.status(500).json({ message: 'Server error creating pre-submission' });
+    }
+};
+
+export const updatePreSubmissionAdmin = async (req, res) => {
+    const { id } = req.params;
+    const { presentation_date, committee_members, remark } = req.body;
+    
+    if (!presentation_date || !remark) {
+        return res.status(400).json({ message: 'Presentation date and remark are required' });
+    }
+
+    try {
+        const result = await pool.query(
+            `UPDATE phd_pre_submissions 
+             SET presentation_date = $1, committee_members = $2, remark = $3, admin_updated_at = CURRENT_TIMESTAMP
+             WHERE id = $4 RETURNING *`,
+            [presentation_date, JSON.stringify(committee_members || []), remark, id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Pre-submission record not found' });
+        }
+        
+        res.json({ message: 'Pre-submission updated successfully', preSubmission: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error updating pre-submission' });
+    }
+};
+
+export const getPreSubmissions = async (req, res) => {
+    const { roll_no } = req.query;
+    try {
+        let query = `
+            SELECT pps.*, sm.first_name, sm.last_name 
+            FROM phd_pre_submissions pps
+            JOIN student_master sm ON sm.roll_no = pps.roll_no
+            ORDER BY pps.uploaded_at DESC
+        `;
+        let params = [];
+        
+        if (roll_no) {
+            query = `
+                SELECT pps.*, sm.first_name, sm.last_name 
+                FROM phd_pre_submissions pps
+                JOIN student_master sm ON sm.roll_no = pps.roll_no
+                WHERE pps.roll_no = $1
+                ORDER BY pps.uploaded_at DESC
+            `;
+            params = [roll_no];
+        }
+
+        const result = await pool.query(query, params);
+        res.json({ preSubmissions: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching pre-submissions' });
+    }
+};
+
+export const getApprovedProgressCount = async (req, res) => {
+    const { roll_no } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT COUNT(*)::int as count FROM phd_progress_reports WHERE roll_no = $1 AND verdict = 'Accepted'`,
+            [roll_no]
+        );
+        res.json({ count: result.rows[0].count });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching progress count' });
     }
 };

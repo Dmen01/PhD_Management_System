@@ -5,7 +5,7 @@ import { User, CreditCard, BookOpen, ChevronDown, ClipboardList, BarChart2, LogO
 import StudentRegistrationModal from './StudentRegistrationModal';
 import StudentProfile from './StudentProfile';
 import FeeDetails from './FeeDetails';
-import { StudentSacMembersPanel, StudentPhdPresentationPanel, StudentPhdLetterPanel, StudentPhdProgressPanel } from './StudentPhdPanels';
+import { StudentSacMembersPanel, StudentPhdPresentationPanel, StudentPhdLetterPanel, StudentPhdProgressPanel, StudentPreSubmissionPanel } from './StudentPhdPanels';
 
 // ── Reusable Notification Bell Panel ───────────────────────────────────────
 const NotificationBell = ({ fetchUrl, accentColor = 'blue' }) => {
@@ -618,6 +618,7 @@ const renderPanel = (active, profileData) => {
         case 'phd-presentation':    return profileData ? <StudentPhdPresentationPanel profile={profileData} /> : null;
         case 'phd-letter':          return profileData ? <StudentPhdLetterPanel profile={profileData} /> : null;
         case 'phd-progress':        return profileData ? <StudentPhdProgressPanel profile={profileData} /> : null;
+        case 'extended-synopsis':   return profileData ? <StudentPreSubmissionPanel profile={profileData} /> : null;
         default:                    return null;
     }
 };
@@ -649,7 +650,8 @@ const StudentDashboard = () => {
                 { id: 'sac-members', label: 'My SAC Members', icon: Users },
                 { id: 'phd-presentation', label: 'PHD Registration Presentation', icon: LayoutList },
                 { id: 'phd-letter', label: 'PHD Registration Letter', icon: FileText },
-                { id: 'phd-progress', label: 'PHD Progress Report', icon: ClipboardList }
+                { id: 'phd-progress', label: 'PHD Progress Report', icon: ClipboardList },
+                { id: 'extended-synopsis', label: 'Extended Synopsis', icon: Target }
             ]
         }
     ];

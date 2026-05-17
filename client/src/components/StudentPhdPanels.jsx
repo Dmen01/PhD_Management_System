@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, FileText, ExternalLink, Calendar, Users, Target, User, Mail, Phone, Building2, CheckCircle, LayoutList } from 'lucide-react';
+import { Loader2, FileText, ExternalLink, Calendar, Users, Target, User, Mail, Phone, Building2, CheckCircle, LayoutList, Upload } from 'lucide-react';
 
 // ── Student SAC Members View ────────────────────────────────────────────────
 export const StudentSacMembersPanel = ({ profile }) => {
@@ -363,6 +363,149 @@ export const StudentPhdProgressPanel = ({ profile }) => {
                                         <p className="text-sm text-slate-600 leading-relaxed">{r.remarks}</p>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ── Student Extended Synopsis View ──────────────────────────────────────────────
+export const StudentPreSubmissionPanel = ({ profile }) => {
+    const [synopses, setSynopses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [file, setFile] = useState(null);
+    const [fileError, setFileError] = useState('');
+    const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+
+    const fetchSynopses = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`http://localhost:5001/api/phd/extended-synopses?roll_no=${encodeURIComponent(profile.roll_no)}`);
+            const data = await res.json();
+            if (res.ok) setSynopses(data.synopses);
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
+    };
+
+    useEffect(() => {
+        fetchSynopses();
+    }, [profile]);
+
+    const handleFile = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        if (f.type !== 'application/pdf') { setFileError('Only PDF files are accepted'); setFile(null); return; }
+        if (f.size > 20 * 1024 * 1024) { setFileError('File size must be under 20 MB'); setFile(null); return; }
+        setFileError('');
+        setFile(f);
+    };
+
+    const submit = async (e) => {
+        e.preventDefault();
+        if (!file) return setError('Please upload an extended synopsis PDF file');
+
+        const body = new FormData();
+        body.append('synopsis', file);
+        body.append('roll_no', profile.roll_no);
+
+        setUploading(true); setError(''); setSuccess('');
+        try {
+            const res = await fetch(`http://localhost:5001/api/phd/extended-synopses`, { method: 'POST', body });
+            const data = await res.json();
+            if (res.ok) {
+                setSuccess('Extended synopsis uploaded successfully!');
+                setFile(null);
+                fetchSynopses();
+            } else {
+                setError(data.message || 'Upload failed');
+            }
+        } catch { setError('Failed to connect to server'); }
+        finally { setUploading(false); }
+    };
+
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-3">
+            <Loader2 className="animate-spin" size={24} />
+            <p className="text-sm">Loading records...</p>
+        </div>
+    );
+
+    return (
+        <div className="space-y-6 w-full max-w-4xl">
+            <div>
+                <h2 className="text-2xl font-bold text-slate-800">Extended Synopsis</h2>
+                <p className="text-slate-500 mt-1">Upload your extended synopsis document.</p>
+            </div>
+
+            {synopses.length === 0 ? (
+            <div className="bg-white border border-blue-100 rounded-3xl p-6 shadow-sm">
+                <h3 className="text-sm font-semibold text-slate-700 mb-4">Upload Extended Synopsis</h3>
+                <form onSubmit={submit} className="space-y-4">
+                    {error && <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl border border-red-100">{error}</div>}
+                    {success && <div className="bg-emerald-50 text-emerald-600 text-sm p-3 rounded-xl border border-emerald-100">{success}</div>}
+
+                    <div className="space-y-2">
+                        <label className={`flex flex-col items-center justify-center w-full h-32 rounded-2xl border-2 border-dashed cursor-pointer transition-all ${file ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/50'}`}>
+                            <div className="flex flex-col items-center text-center px-4">
+                                {file ? (
+                                    <>
+                                        <FileText size={24} className="text-blue-500 mb-2" />
+                                        <span className="text-sm font-medium text-blue-700">{file.name}</span>
+                                        <span className="text-xs text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload size={24} className="text-slate-400 mb-2" />
+                                        <span className="text-sm text-slate-500">Click to upload extended synopsis</span>
+                                        <span className="text-xs text-slate-400 mt-1">PDF max 20MB</span>
+                                    </>
+                                )}
+                            </div>
+                            <input type="file" accept="application/pdf" onChange={handleFile} className="hidden" />
+                        </label>
+                        {fileError && <p className="text-xs text-red-500 font-medium">{fileError}</p>}
+                    </div>
+
+                    <div className="flex justify-end">
+                        <button type="submit" disabled={uploading || !file} className={`px-6 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-bold text-white transition-all flex items-center space-x-2 ${(uploading || !file) ? 'opacity-50 cursor-not-allowed' : 'shadow-md shadow-blue-200'}`}>
+                            {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                            <span>Submit Synopsis</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            ) : (
+            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-6 flex flex-col items-center justify-center text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <CheckCircle size={22} />
+                </div>
+                <p className="text-sm font-bold text-slate-700">Extended Synopsis Already Submitted</p>
+                <p className="text-xs text-slate-400">You have already uploaded your extended synopsis. No further uploads are allowed.</p>
+            </div>
+            )}
+
+            {synopses.length > 0 && (
+                <div className="space-y-4">
+                    <h3 className="text-sm font-semibold text-slate-700">Submission History</h3>
+                    {synopses.map((s) => (
+                        <div key={s.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col sm:flex-row items-center p-6 gap-6">
+                            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                                <CheckCircle size={24} />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-bold text-emerald-700">Submitted</h3>
+                                <p className="text-sm text-slate-500 font-medium mt-0.5">Uploaded on {new Date(s.uploaded_at).toLocaleDateString('en-GB')}</p>
+                            </div>
+                            <div className="flex-shrink-0">
+                                <a href={`http://localhost:5001/${s.file_path}`} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center space-x-1.5 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-colors text-sm font-bold">
+                                    <FileText size={16} /><span>View PDF</span><ExternalLink size={14} className="opacity-70 ml-1" />
+                                </a>
                             </div>
                         </div>
                     ))}
