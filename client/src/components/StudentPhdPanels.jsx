@@ -124,7 +124,7 @@ export const StudentPhdPresentationPanel = ({ profile }) => {
     return (
         <div className="space-y-6 w-full">
             <div>
-                <h2 className="text-2xl font-bold text-slate-800">PhD Registration Presentation</h2>
+                <h2 className="text-2xl font-bold text-slate-800">Ph.D Registration Presentation</h2>
                 <p className="text-slate-500 mt-1">Review the outcomes of your synopsis presentations.</p>
             </div>
             
@@ -205,7 +205,7 @@ export const StudentPhdLetterPanel = ({ profile }) => {
     return (
         <div className="space-y-6 max-w-3xl">
             <div>
-                <h2 className="text-2xl font-bold text-slate-800">PhD Registration Letter</h2>
+                <h2 className="text-2xl font-bold text-slate-800">Ph.D Registration Letter</h2>
                 <p className="text-slate-500 mt-1">View and download your official PhD Registration Letter.</p>
             </div>
             
@@ -282,7 +282,7 @@ export const StudentPhdProgressPanel = ({ profile }) => {
         <div className="space-y-6 w-full">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-800">PhD Progress Reports</h2>
+                    <h2 className="text-2xl font-bold text-slate-800">Ph.D Progress Reports</h2>
                     <p className="text-slate-500 mt-1">Timeline of your periodic progress evaluations.</p>
                 </div>
                 {/* Summary Stat */}

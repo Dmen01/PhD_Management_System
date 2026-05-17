@@ -81,7 +81,7 @@ export const PhdRegistrationPresentationPanel = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-bold text-white">PhD Registration Presentation</h2>
+                <h2 className="text-xl font-bold text-white">Ph.D Registration Presentation</h2>
                 <p className="text-slate-400 text-sm mt-1">Upload the student's synopsis and record the outcome of their registration presentation.</p>
             </div>
 
@@ -306,7 +306,7 @@ export const PhdRegistrationLetterPanel = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-bold text-white">PhD Registration Letter</h2>
+                <h2 className="text-xl font-bold text-white">Ph.D Registration Letter</h2>
                 <p className="text-slate-400 text-sm mt-1">Upload the finalized registration letter for students who have successfully completed their presentation.</p>
             </div>
 
@@ -549,7 +549,7 @@ export const PhdProgressReportPanel = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-bold text-white">PhD Progress Report</h2>
+                <h2 className="text-xl font-bold text-white">Ph.D Progress Report</h2>
                 <p className="text-slate-400 text-sm mt-1">Record and upload progress reports for registered PhD students.</p>
             </div>
 

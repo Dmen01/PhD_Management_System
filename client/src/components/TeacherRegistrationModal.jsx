@@ -1,3 +1,4 @@
+import { API_BASE } from '../config';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User, Phone, Calendar, FileText, Mail, Building2, Award, Loader2, ChevronRight } from 'lucide-react';

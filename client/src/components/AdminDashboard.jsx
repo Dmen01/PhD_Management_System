@@ -1682,7 +1682,7 @@ const NotificationsPanel = () => {
     );
 };
 
-// ── Validate Pre-PhD Results Panel ───────────────────────────────────────────
+// ── Validate Pre-Ph.D Results Panel ───────────────────────────────────────────
 const ValidateResultPanel = () => {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -1721,7 +1721,7 @@ const ValidateResultPanel = () => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-bold text-white">Validate Pre-PhD Results</h2>
+                <h2 className="text-xl font-bold text-white">Validate Pre-Ph.D Results</h2>
                 <p className="text-slate-400 text-sm mt-1">Review uploaded results. Verify to unlock SAC assignment, or reject so the student can re-upload.</p>
             </div>
             {loading ? (

@@ -22,7 +22,6 @@ import {
     adminCreatePreSubmission,
     uploadExtendedSynopsis,
     getExtendedSynopsis,
-    updatePreSubmissionAdmin,
     uploadFinalSubmissionMiddleware,
     getEligibleFinalSubmissionStudents,
     getApprovedPreSubmissionDate,
@@ -55,7 +54,6 @@ router.delete('/progress-reports/:id', deleteProgressReport);
 
 // PHD Pre-Submission Presentations (Admin)
 router.post('/admin/pre-submissions', uploadPreSubmissionMiddleware.single('synopsis'), adminCreatePreSubmission);
-router.put('/pre-submissions/:id', updatePreSubmissionAdmin);
 router.get('/pre-submissions', getPreSubmissions);
 router.get('/pre-submissions/progress-count/:roll_no', getApprovedProgressCount);
 

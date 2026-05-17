@@ -1,3 +1,4 @@
+import { API_BASE } from '../config';
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Phone, Calendar, Shield, Send, Eye, EyeOff, Loader2, Check, ChevronRight, Lock } from 'lucide-react';

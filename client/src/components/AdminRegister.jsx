@@ -1,3 +1,4 @@
+import { API_BASE } from '../config';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, Check, Send, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';

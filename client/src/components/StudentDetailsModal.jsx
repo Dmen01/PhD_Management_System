@@ -470,7 +470,7 @@ const StudentDetailsModal = ({ student, onClose }) => {
     const TOPICS = [
         { id: 'contact',   label: 'Contact & Admission', icon: User },
         { id: 'fee',       label: 'Fee Details',         icon: CreditCard },
-        { id: 'coursework',label: 'Pre-PhD Result',      icon: BookOpen },
+        { id: 'coursework',label: 'Pre-Ph.D Result',      icon: BookOpen },
         { id: 'phd',       label: 'Ph.D Section',         icon: GraduationCap },
     ];
 
@@ -585,7 +585,7 @@ const StudentDetailsModal = ({ student, onClose }) => {
 
                                 {activeTopic === 'coursework' && (
                                     <div className="space-y-8">
-                                        <SectionTitle icon={BookOpen} title="Pre-PhD Result" />
+                                        <SectionTitle icon={BookOpen} title="Pre-Ph.D Result" />
                                         <ModalResultViewer rollNo={rollNo} />
                                     </div>
                                 )}

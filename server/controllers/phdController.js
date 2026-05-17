@@ -472,33 +472,6 @@ export const adminCreatePreSubmission = async (req, res) => {
     }
 };
 
-export const updatePreSubmissionAdmin = async (req, res) => {
-    const { id } = req.params;
-    const { presentation_date, committee_members, remark } = req.body;
-    
-    if (!presentation_date || !remark) {
-        return res.status(400).json({ message: 'Presentation date and remark are required' });
-    }
-
-    try {
-        const result = await pool.query(
-            `UPDATE phd_pre_submissions 
-             SET presentation_date = $1, committee_members = $2, remark = $3, admin_updated_at = CURRENT_TIMESTAMP
-             WHERE id = $4 RETURNING *`,
-            [presentation_date, JSON.stringify(committee_members || []), remark, id]
-        );
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'Pre-submission record not found' });
-        }
-        
-        res.json({ message: 'Pre-submission updated successfully', preSubmission: result.rows[0] });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error updating pre-submission' });
-    }
-};
-
 export const getPreSubmissions = async (req, res) => {
     const { roll_no } = req.query;
     try {

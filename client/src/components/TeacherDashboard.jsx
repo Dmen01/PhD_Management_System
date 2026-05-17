@@ -1,3 +1,4 @@
+import { API_BASE } from '../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -1033,7 +1034,7 @@ const TeacherDashboard = () => {
                     <div className="absolute right-20 bottom-0 w-28 h-28 bg-amber-500/5 rounded-full translate-y-1/2" />
                     <div className="relative z-10 flex items-center space-x-3">
                         <NotificationBell
-                            fetchUrl=`${API_BASE}/api/notifications/teacher`
+                            fetchUrl={`${API_BASE}/api/notifications/teacher`}
                             accentColor="amber"
                         />
                         <div className="hidden md:flex items-center justify-center w-20 h-20 bg-amber-600/20 border border-amber-600/30 rounded-2xl backdrop-blur-sm">

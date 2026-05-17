@@ -159,7 +159,7 @@ const SidebarItem = ({ item, active, onSelect }) => {
                     if (item.locked) return;
                     hasChildren ? setOpen(p => !p) : onSelect(item.id)
                 }}
-                title={item.locked ? 'Locked until Admin verifies Pre-PhD result' : ''}
+                title={item.locked ? 'Locked until Admin verifies Pre-Ph.D result' : ''}
                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-all
                     ${item.locked ? 'text-blue-100/30 cursor-not-allowed' : (active === item.id || isChildActive)
                         ? 'bg-white/20 text-white font-semibold'
@@ -218,7 +218,7 @@ const Placeholder = ({ title }) => (
     </div>
 );
 
-// ── Pre-PhD Coursework Panel ──────────────────────────────────────────────────
+// ── Pre-Ph.D Coursework Panel ──────────────────────────────────────────────────
 const PrePhdCoursework = ({ profile }) => {
     const [subjects, setSubjects] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -241,7 +241,7 @@ const PrePhdCoursework = ({ profile }) => {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-2xl font-bold text-slate-800">Pre-PhD Coursework</h2>
+                <h2 className="text-2xl font-bold text-slate-800">Pre-Ph.D Coursework</h2>
                 <p className="text-slate-500 mt-1">Subjects assigned by your Mentor Teacher.</p>
             </div>
 
@@ -422,7 +422,7 @@ const MyMentors = ({ profile }) => {
     );
 };
 
-// ── Pre-PhD Result Panel ──────────────────────────────────────────────────────
+// ── Pre-Ph.D Result Panel ──────────────────────────────────────────────────────
 const PrePhdResult = ({ profile }) => {
     const [resultData, setResultData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -495,8 +495,8 @@ const PrePhdResult = ({ profile }) => {
     return (
         <div className="max-w-2xl space-y-6">
             <div>
-                <h2 className="text-2xl font-bold text-slate-800">Pre-PhD Result</h2>
-                <p className="text-slate-500 mt-1">Upload and view your Pre-PhD coursework result.</p>
+                <h2 className="text-2xl font-bold text-slate-800">Pre-Ph.D Result</h2>
+                <p className="text-slate-500 mt-1">Upload and view your Pre-Ph.D coursework result.</p>
             </div>
 
             <AnimatePresence mode="wait">
@@ -505,7 +505,7 @@ const PrePhdResult = ({ profile }) => {
                     <motion.div key="view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white border border-blue-100 rounded-2xl p-6 shadow-sm space-y-5">
                         <div className="flex items-center space-x-2 text-green-600">
                             <CheckCircle size={18} />
-                            <span className="text-sm font-semibold">Pre-PhD Result Submitted</span>
+                            <span className="text-sm font-semibold">Pre-Ph.D Result Submitted</span>
                         </div>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -565,7 +565,7 @@ const PrePhdResult = ({ profile }) => {
 
                             {/* PDF Upload */}
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Pre-PhD Result PDF *</label>
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Pre-Ph.D Result PDF *</label>
                                 <label className={`flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed cursor-pointer transition-all ${file ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/50'}`}>
                                     <div className="flex flex-col items-center space-y-2 text-center px-4">
                                         {file ? (
@@ -598,7 +598,7 @@ const PrePhdResult = ({ profile }) => {
                             </button>
 
                             <button type="submit" disabled={uploading || !verified || !file} className={`w-full h-11 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-bold text-white transition-all flex items-center justify-center space-x-2 ${(uploading || !verified || !file) ? 'opacity-40 cursor-not-allowed' : 'shadow-lg shadow-blue-200'}`}>
-                                {uploading ? <Loader2 size={18} className="animate-spin" /> : <><Upload size={16} /><span>Submit Pre-PhD Result</span></>}
+                                {uploading ? <Loader2 size={18} className="animate-spin" /> : <><Upload size={16} /><span>Submit Pre-Ph.D Result</span></>}
                             </button>
                         </form>
                     </motion.div>
@@ -639,10 +639,10 @@ const StudentDashboard = () => {
         { id: 'fee',      label: 'Fee Details', icon: CreditCard },
         { id: 'mentors',  label: 'My Mentors',  icon: Users },
         {
-            id: 'prephd', label: 'Pre-PhD', icon: BookOpen,
+            id: 'prephd', label: 'Pre-Ph.D', icon: BookOpen,
             children: [
-                { id: 'prephd-coursework', label: 'Pre-PhD Coursework', icon: ClipboardList },
-                { id: 'prephd-result',     label: 'Pre-PhD Result',     icon: BarChart2 },
+                { id: 'prephd-coursework', label: 'Pre-Ph.D Coursework', icon: ClipboardList },
+                { id: 'prephd-result',     label: 'Pre-Ph.D Result',     icon: BarChart2 },
             ]
         },
         {
@@ -708,7 +708,7 @@ const StudentDashboard = () => {
                             <GraduationCap size={28} className="text-white" />
                         </div>
                         <div className="text-center">
-                            <p className="text-sm font-bold text-white leading-tight">PhD Portal</p>
+                            <p className="text-sm font-bold text-white leading-tight">Ph.D Portal</p>
                             <p className="text-xs text-blue-200/70 truncate max-w-[160px] mt-0.5">{studentEmail}</p>
                         </div>
                     </div>
