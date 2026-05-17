@@ -22,7 +22,12 @@ import {
     adminCreatePreSubmission,
     uploadExtendedSynopsis,
     getExtendedSynopsis,
-    updatePreSubmissionAdmin
+    updatePreSubmissionAdmin,
+    uploadFinalSubmissionMiddleware,
+    getEligibleFinalSubmissionStudents,
+    getApprovedPreSubmissionDate,
+    adminCreateFinalSubmission,
+    getFinalSubmissions
 } from '../controllers/phdController.js';
 
 const router = express.Router();
@@ -57,5 +62,11 @@ router.get('/pre-submissions/progress-count/:roll_no', getApprovedProgressCount)
 // PHD Extended Synopsis (Student)
 router.post('/extended-synopses', uploadPreSubmissionMiddleware.single('synopsis'), uploadExtendedSynopsis);
 router.get('/extended-synopses', getExtendedSynopsis);
+
+// PHD Final Submissions (Admin)
+router.get('/eligible-finalsubmission-students', getEligibleFinalSubmissionStudents);
+router.get('/final-submissions/presubmission-date/:roll_no', getApprovedPreSubmissionDate);
+router.post('/admin/final-submissions', uploadFinalSubmissionMiddleware.single('notification'), adminCreateFinalSubmission);
+router.get('/final-submissions', getFinalSubmissions);
 
 export default router;

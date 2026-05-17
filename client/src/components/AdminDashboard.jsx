@@ -7,7 +7,7 @@ import {
 import StudentDetailsModal from './StudentDetailsModal';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PhdRegistrationPresentationPanel, PhdRegistrationLetterPanel, PhdProgressReportPanel, AdminPreSubmissionPanel } from './AdminPhdPanels';
+import { PhdRegistrationPresentationPanel, PhdRegistrationLetterPanel, PhdProgressReportPanel, AdminPreSubmissionPanel, AdminFinalSubmissionPanel } from './AdminPhdPanels';
 
 // ── Sidebar nav config ────────────────────────────────────────────────────────
 const NAV = [
@@ -32,6 +32,7 @@ const NAV = [
             { id: 'phd-letter', label: 'PHD Registration Letter', icon: FileText },
             { id: 'phd-progress', label: 'PHD Progress Report', icon: FileText },
             { id: 'pre-submission', label: 'Pre-Submission Presentation', icon: Target },
+            { id: 'final-submission', label: 'Final Submission', icon: Award },
         ]
     },
 ];
@@ -2079,6 +2080,7 @@ const PANELS = {
     'phd-letter': <PhdRegistrationLetterPanel />,
     'phd-progress': <PhdProgressReportPanel />,
     'pre-submission': <AdminPreSubmissionPanel />,
+    'final-submission': <AdminFinalSubmissionPanel />,
 };
 
 

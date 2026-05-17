@@ -420,6 +420,49 @@ const ModalPreSubmissionView = ({ rollNo }) => {
 
 // ── Main Modal Component ──────────────────────────────────────────────────────
 
+const ModalFinalSubmissionView = ({ rollNo }) => {
+    const [finalSubmissions, setFinalSubmissions] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const res = await fetch(`http://localhost:5001/api/phd/final-submissions?roll_no=${encodeURIComponent(rollNo)}`);
+                if (res.ok) { const d = await res.json(); setFinalSubmissions(d.finalSubmissions); }
+            } catch (err) { console.error(err); }
+            finally { setLoading(false); }
+        };
+        load();
+    }, [rollNo]);
+
+    if (loading) return <Loader2 className="animate-spin text-slate-400 mx-auto" />;
+    if (finalSubmissions.length === 0) return <p className="text-xs text-slate-400 italic py-3">No final submission recorded.</p>;
+
+    return (
+        <div className="space-y-4">
+            {finalSubmissions.map(f => (
+                <div key={f.id} className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                    <div className="px-4 py-2 bg-emerald-50 flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">Final Presentation</span>
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase">Recorded</span>
+                    </div>
+                    <div className="p-4 space-y-3">
+                        <div className="flex items-center space-x-2 text-slate-600">
+                            <Calendar size={14} className="text-blue-500" />
+                            <span className="text-xs font-semibold">{new Date(f.final_presentation_date).toLocaleDateString('en-GB')}</span>
+                            <span className="text-[10px] text-slate-400 ml-1">Final Presentation Date</span>
+                        </div>
+                        <a href={`http://localhost:5001/${f.notification_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center space-x-1.5 text-xs font-bold text-blue-600 hover:underline">
+                            <FileText size={14} /><span>View Final Notification</span>
+                        </a>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
 const StudentDetailsModal = ({ student, onClose }) => {
     const [activeTopic, setActiveTopic] = useState('contact');
 
@@ -431,11 +474,12 @@ const StudentDetailsModal = ({ student, onClose }) => {
     ];
 
     const PHD_SUBSECTIONS = [
-        { id: 'sac',        label: 'SAC Members',        icon: Users },
-        { id: 'presentation',label: 'Registration Pres.', icon: LayoutList },
-        { id: 'letter',     label: 'Registration Letter',icon: FileText },
-        { id: 'progress',   label: 'Progress Reports',   icon: ClipboardList },
-        { id: 'pre-submission', label: 'Pre-Submission', icon: Target },
+        { id: 'sac',             label: 'SAC Members',        icon: Users },
+        { id: 'presentation',   label: 'Registration Pres.', icon: LayoutList },
+        { id: 'letter',          label: 'Registration Letter',icon: FileText },
+        { id: 'progress',        label: 'Progress Reports',   icon: ClipboardList },
+        { id: 'pre-submission',  label: 'Pre-Submission',     icon: Target },
+        { id: 'final-submission',label: 'Final Submission',   icon: Award },
     ];
 
     const [activePhdSub, setActivePhdSub] = useState('sac');
@@ -572,6 +616,7 @@ const StudentDetailsModal = ({ student, onClose }) => {
                                             {activePhdSub === 'letter' && <ModalLetterView rollNo={rollNo} />}
                                             {activePhdSub === 'progress' && <ModalProgressView rollNo={rollNo} />}
                                             {activePhdSub === 'pre-submission' && <ModalPreSubmissionView rollNo={rollNo} />}
+                                            {activePhdSub === 'final-submission' && <ModalFinalSubmissionView rollNo={rollNo} />}
                                         </div>
                                     </div>
                                 )}

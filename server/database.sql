@@ -204,3 +204,12 @@ CREATE TABLE IF NOT EXISTS phd_extended_synopses (
   file_path VARCHAR(500) NOT NULL,
   uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Final Submission (uploaded by admin)
+CREATE TABLE IF NOT EXISTS phd_final_submissions (
+  id SERIAL PRIMARY KEY,
+  roll_no VARCHAR(50) NOT NULL REFERENCES student_master(roll_no) ON DELETE CASCADE,
+  final_presentation_date DATE NOT NULL,
+  notification_pdf_path VARCHAR(500) NOT NULL,
+  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

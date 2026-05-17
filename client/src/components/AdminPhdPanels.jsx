@@ -1148,3 +1148,216 @@ export const AdminPreSubmissionPanel = () => {
         </div>
     );
 };
+
+// ── Admin PHD Final Submission Panel ──────────────────────────────────────────
+export const AdminFinalSubmissionPanel = () => {
+    const [allStudents, setAllStudents] = useState([]);
+    const [filteredStudents, setFilteredStudents] = useState([]);
+    const [yearFilter, setYearFilter] = useState('');
+    const [selectedStudent, setSelectedStudent] = useState('');
+    const [preSubmissionDate, setPreSubmissionDate] = useState(null);
+    const [finalSubmissions, setFinalSubmissions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+
+    const [file, setFile] = useState(null);
+    const [finalDate, setFinalDate] = useState('');
+    const [formError, setFormError] = useState('');
+    const [formSuccess, setFormSuccess] = useState('');
+
+    const fetchStudents = async () => {
+        try {
+            const res = await fetch('http://localhost:5001/api/phd/eligible-finalsubmission-students');
+            const data = await res.json();
+            if (res.ok) { setAllStudents(data.students); setFilteredStudents(data.students); }
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
+    };
+
+    const fetchStudentData = async (rollNo) => {
+        if (!rollNo) { setPreSubmissionDate(null); setFinalSubmissions([]); return; }
+        try {
+            const [dateRes, fsRes] = await Promise.all([
+                fetch(`http://localhost:5001/api/phd/final-submissions/presubmission-date/${rollNo}`),
+                fetch(`http://localhost:5001/api/phd/final-submissions?roll_no=${rollNo}`)
+            ]);
+            if (dateRes.ok) { const d = await dateRes.json(); setPreSubmissionDate(d.presentation_date); }
+            if (fsRes.ok) { const d = await fsRes.json(); setFinalSubmissions(d.finalSubmissions); }
+        } catch (err) { console.error(err); }
+    };
+
+    useEffect(() => { fetchStudents(); }, []);
+
+    useEffect(() => {
+        if (yearFilter) {
+            setFilteredStudents(allStudents.filter(s => s.year_of_admission.toString() === yearFilter));
+        } else {
+            setFilteredStudents(allStudents);
+        }
+    }, [yearFilter, allStudents]);
+
+    useEffect(() => {
+        fetchStudentData(selectedStudent);
+        setFormError(''); setFormSuccess('');
+        setFile(null); setFinalDate('');
+    }, [selectedStudent]);
+
+    const handleFile = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        if (f.type !== 'application/pdf') { setFormError('Only PDF files are accepted'); setFile(null); return; }
+        if (f.size > 20 * 1024 * 1024) { setFormError('File must be under 20MB'); setFile(null); return; }
+        setFormError('');
+        setFile(f);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setFormError(''); setFormSuccess('');
+        if (!file) return setFormError('Please upload the final notification PDF.');
+        if (!finalDate) return setFormError('Please select the final presentation date.');
+
+        const body = new FormData();
+        body.append('roll_no', selectedStudent);
+        body.append('final_presentation_date', finalDate);
+        body.append('notification', file);
+
+        setSubmitting(true);
+        try {
+            const res = await fetch('http://localhost:5001/api/phd/admin/final-submissions', { method: 'POST', body });
+            const data = await res.json();
+            if (res.ok) {
+                setFormSuccess('Final submission recorded successfully!');
+                setFile(null); setFinalDate('');
+                fetchStudentData(selectedStudent);
+                setTimeout(() => setFormSuccess(''), 3000);
+            } else {
+                setFormError(data.message || 'Submission failed.');
+            }
+        } catch { setFormError('Failed to connect to server.'); }
+        finally { setSubmitting(false); }
+    };
+
+    const years = [...new Set(allStudents.map(s => s.year_of_admission))].sort().reverse();
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-xl font-bold text-white">Final Submission</h2>
+                <p className="text-slate-400 text-sm mt-1">Record the final presentation and upload the official notification.</p>
+            </div>
+
+            {/* Student Selection */}
+            <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label className="block text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wide">Filter by Admission Year</label>
+                        <select value={yearFilter} onChange={e => setYearFilter(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-emerald-500 transition-all">
+                            <option value="">All Years</option>
+                            {years.map(y => <option key={y} value={y}>{y}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wide">Select Student <span className="text-red-400">*</span></label>
+                        <select value={selectedStudent} onChange={e => setSelectedStudent(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-emerald-500 transition-all">
+                            <option value="">{loading ? 'Loading...' : '— Select a student —'}</option>
+                            {filteredStudents.map(s => (
+                                <option key={s.roll_no} value={s.roll_no}>{s.first_name} {s.last_name} ({s.roll_no})</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Pre-Submission Presentation Date display */}
+                {selectedStudent && (
+                    <div className="mt-2 p-4 bg-slate-900/50 rounded-xl border border-slate-700 flex items-center justify-between">
+                        <div className="flex items-center space-x-2 text-slate-300">
+                            <Calendar size={16} className="text-emerald-400" />
+                            <p className="text-sm">Approved Pre-Submission Presentation Date:</p>
+                        </div>
+                        <span className="font-bold text-emerald-400 text-sm">
+                            {preSubmissionDate
+                                ? new Date(preSubmissionDate).toLocaleDateString('en-GB')
+                                : 'N/A'}
+                        </span>
+                    </div>
+                )}
+            </div>
+
+            {/* Final Submission Form */}
+            {selectedStudent && (
+                <form onSubmit={handleSubmit} className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 space-y-5">
+                    <div className="border-b border-slate-700 pb-4">
+                        <h3 className="text-sm font-semibold text-slate-300">Record Final Submission</h3>
+                        <p className="text-xs text-slate-400 mt-1">Upload the final notification and set the presentation date.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        {/* Notification Upload */}
+                        <div className="sm:col-span-2">
+                            <label className="block text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wide">Final Notification (PDF, Max 20MB) <span className="text-red-400">*</span></label>
+                            <input
+                                type="file"
+                                accept="application/pdf"
+                                onChange={handleFile}
+                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-600/20 file:text-emerald-400 hover:file:bg-emerald-600/30 transition-all"
+                            />
+                            {file && <p className="text-xs text-emerald-400 mt-1.5">✓ {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</p>}
+                        </div>
+
+                        {/* Final Presentation Date */}
+                        <div className="sm:col-span-2">
+                            <label className="block text-xs text-slate-400 mb-2 font-semibold uppercase tracking-wide">Date of Final Presentation <span className="text-red-400">*</span></label>
+                            <input
+                                type="date"
+                                value={finalDate}
+                                onChange={e => setFinalDate(e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-emerald-500 transition-all cursor-pointer"
+                            />
+                        </div>
+                    </div>
+
+                    {formError && <p className="text-red-400 text-sm">{formError}</p>}
+                    {formSuccess && <p className="text-emerald-400 text-sm">{formSuccess}</p>}
+
+                    <div className="pt-2">
+                        <button type="submit" disabled={submitting || !file}
+                            className="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors">
+                            {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+                            <span>{submitting ? 'Submitting...' : 'Upload Final Submission'}</span>
+                        </button>
+                    </div>
+                </form>
+            )}
+
+            {/* Submission Logs */}
+            {selectedStudent && finalSubmissions.length > 0 && (
+                <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">Final Submission Logs</h3>
+                    {finalSubmissions.map(f => (
+                        <div key={f.id} className="bg-slate-800/40 border border-slate-700 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex items-center space-x-4">
+                                <div className="w-10 h-10 bg-emerald-900/40 border border-emerald-800/50 rounded-xl flex items-center justify-center flex-shrink-0">
+                                    <FileText size={18} className="text-emerald-400" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-white">Final Presentation</p>
+                                    <div className="flex items-center space-x-2 mt-0.5">
+                                        <Calendar size={12} className="text-slate-500" />
+                                        <span className="text-xs text-slate-400">{new Date(f.final_presentation_date).toLocaleDateString('en-GB')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href={`http://localhost:5001/${f.notification_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                className="flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-emerald-400 rounded-lg transition-colors">
+                                <FileText size={13} /><span>View Notification</span><ExternalLink size={10} />
+                            </a>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};

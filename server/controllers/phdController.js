@@ -85,8 +85,26 @@ export const uploadPreSubmissionMiddleware = multer({
     limits: { fileSize: 20 * 1024 * 1024 } // 20MB max
 });
 
+const storageFinalSubmission = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = 'uploads/phd_final_submissions';
+        fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const { roll_no } = req.body;
+        const ext = path.extname(file.originalname);
+        cb(null, `${roll_no}_final_${Date.now()}${ext}`);
+    }
+});
 
-// ── Controllers ───────────────────────────────────────────────────────────────
+export const uploadFinalSubmissionMiddleware = multer({ 
+    storage: storageFinalSubmission, 
+    fileFilter, 
+    limits: { fileSize: 20 * 1024 * 1024 } // 20MB max
+});
+
+
 
 export const getEligiblePresentationStudents = async (req, res) => {
     try {
@@ -522,5 +540,88 @@ export const getApprovedProgressCount = async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error fetching progress count' });
+    }
+};
+
+// ── Final Submissions ─────────────────────────────────────────────────────────
+
+export const getEligibleFinalSubmissionStudents = async (req, res) => {
+    try {
+        // Students who have an accepted pre-submission presentation
+        const result = await pool.query(`
+            SELECT DISTINCT sm.roll_no, sm.first_name, sm.last_name, sm.email, sm.year_of_admission
+            FROM student_master sm
+            JOIN phd_pre_submissions pps ON pps.roll_no = sm.roll_no
+            WHERE pps.remark = 'Accepted'
+            ORDER BY sm.first_name ASC
+        `);
+        res.json({ students: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching eligible students for final submission' });
+    }
+};
+
+export const getApprovedPreSubmissionDate = async (req, res) => {
+    const { roll_no } = req.params;
+    try {
+        const result = await pool.query(
+            `SELECT presentation_date FROM phd_pre_submissions WHERE roll_no = $1 AND remark = 'Accepted' ORDER BY admin_updated_at DESC LIMIT 1`,
+            [roll_no]
+        );
+        const date = result.rows[0]?.presentation_date || null;
+        res.json({ presentation_date: date });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching pre-submission date' });
+    }
+};
+
+export const adminCreateFinalSubmission = async (req, res) => {
+    const { roll_no, final_presentation_date } = req.body;
+    if (!req.file) return res.status(400).json({ message: 'Final notification PDF is required' });
+    if (!roll_no || !final_presentation_date) {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: 'Roll number and final presentation date are required' });
+    }
+    try {
+        const result = await pool.query(
+            `INSERT INTO phd_final_submissions (roll_no, final_presentation_date, notification_pdf_path)
+             VALUES ($1, $2, $3) RETURNING *`,
+            [roll_no, final_presentation_date, req.file.path]
+        );
+        res.status(201).json({ message: 'Final submission recorded successfully', finalSubmission: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        if (req.file) fs.unlinkSync(req.file.path);
+        res.status(500).json({ message: 'Server error creating final submission' });
+    }
+};
+
+export const getFinalSubmissions = async (req, res) => {
+    const { roll_no } = req.query;
+    try {
+        let query = `
+            SELECT pfs.*, sm.first_name, sm.last_name
+            FROM phd_final_submissions pfs
+            JOIN student_master sm ON sm.roll_no = pfs.roll_no
+            ORDER BY pfs.uploaded_at DESC
+        `;
+        let params = [];
+        if (roll_no) {
+            query = `
+                SELECT pfs.*, sm.first_name, sm.last_name
+                FROM phd_final_submissions pfs
+                JOIN student_master sm ON sm.roll_no = pfs.roll_no
+                WHERE pfs.roll_no = $1
+                ORDER BY pfs.uploaded_at DESC
+            `;
+            params = [roll_no];
+        }
+        const result = await pool.query(query, params);
+        res.json({ finalSubmissions: result.rows });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error fetching final submissions' });
     }
 };
