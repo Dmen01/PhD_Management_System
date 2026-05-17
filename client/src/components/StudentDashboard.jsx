@@ -386,7 +386,7 @@ const MyMentors = ({ profile }) => {
         <div className="space-y-6">
             <div>
                 <h2 className="text-2xl font-bold text-slate-800">My Mentors</h2>
-                <p className="text-slate-500 mt-1">Teachers assigned to assist you through your PhD program.</p>
+                <p className="text-slate-500 mt-1">Teachers assigned to assist you through your Ph.D program.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

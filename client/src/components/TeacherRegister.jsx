@@ -260,7 +260,7 @@ const TeacherRegister = () => {
                 </div>
                 <div className="relative z-10 p-12 text-center space-y-6 max-w-lg">
                     <h2 className="text-4xl font-bold text-white leading-tight">University Faculty Portal</h2>
-                    <p className="text-amber-200/70 text-lg">Dedicated space for PhD supervisors and faculty members.</p>
+                    <p className="text-amber-200/70 text-lg">Dedicated space for Ph.D supervisors and faculty members.</p>
                 </div>
                 <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-slate-950 to-transparent z-20"></div>
             </div>

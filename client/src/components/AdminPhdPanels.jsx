@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Loader2, FileText, ExternalLink, Trash2, Send, Upload, User, LayoutList, Calendar, CheckSquare, Square, Plus, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ── PhD Registration Presentation Panel ───────────────────────────────────────
+// ── Ph.D Registration Presentation Panel ───────────────────────────────────────
 export const PhdRegistrationPresentationPanel = () => {
     const [students, setStudents] = useState([]);
     const [presentations, setPresentations] = useState([]);
@@ -231,7 +231,7 @@ export const PhdRegistrationPresentationPanel = () => {
     );
 };
 
-// ── PhD Registration Letter Panel ─────────────────────────────────────────────
+// ── Ph.D Registration Letter Panel ─────────────────────────────────────────────
 export const PhdRegistrationLetterPanel = () => {
     const [students, setStudents] = useState([]);
     const [letters, setLetters] = useState([]);
@@ -423,7 +423,7 @@ export const PhdRegistrationLetterPanel = () => {
     );
 };
 
-// ── PhD Progress Report Panel ───────────────────────────────────────────────
+// ── Ph.D Progress Report Panel ───────────────────────────────────────────────
 export const PhdProgressReportPanel = () => {
     const [allStudents, setAllStudents] = useState([]);
     const [filteredStudents, setFilteredStudents] = useState([]);
@@ -550,7 +550,7 @@ export const PhdProgressReportPanel = () => {
         <div className="space-y-6">
             <div>
                 <h2 className="text-xl font-bold text-white">Ph.D Progress Report</h2>
-                <p className="text-slate-400 text-sm mt-1">Record and upload progress reports for registered PhD students.</p>
+                <p className="text-slate-400 text-sm mt-1">Record and upload progress reports for registered Ph.D students.</p>
             </div>
 
             <form onSubmit={handleUpload} className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6 space-y-5">

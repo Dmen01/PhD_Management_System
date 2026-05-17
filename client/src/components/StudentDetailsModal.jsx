@@ -594,7 +594,7 @@ const StudentDetailsModal = ({ student, onClose }) => {
                                     <div className="space-y-8">
                                         <SectionTitle icon={GraduationCap} title="Ph.D Section" />
                                         
-                                        {/* Sub-navigation for PhD */}
+                                        {/* Sub-navigation for Ph.D */}
                                         <div className="flex items-center space-x-1 bg-slate-100 p-1.5 rounded-2xl mb-8">
                                             {PHD_SUBSECTIONS.map(s => (
                                                 <button

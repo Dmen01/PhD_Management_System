@@ -206,7 +206,7 @@ export const StudentPhdLetterPanel = ({ profile }) => {
         <div className="space-y-6 max-w-3xl">
             <div>
                 <h2 className="text-2xl font-bold text-slate-800">Ph.D Registration Letter</h2>
-                <p className="text-slate-500 mt-1">View and download your official PhD Registration Letter.</p>
+                <p className="text-slate-500 mt-1">View and download your official Ph.D Registration Letter.</p>
             </div>
             
             <div className="space-y-4">

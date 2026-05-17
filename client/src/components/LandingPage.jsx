@@ -30,7 +30,7 @@ const LandingPage = () => {
             variants={variants}
             className="text-6xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-violet-600 via-indigo-600 to-violet-600 tracking-tight pb-2"
           >
-            PhD Management ERP
+            Ph.D Management System
           </motion.h1>
           
           <motion.p 

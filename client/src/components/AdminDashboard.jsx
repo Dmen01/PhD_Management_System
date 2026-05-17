@@ -653,7 +653,7 @@ const CourseworkSubjects = () => {
         <div className="space-y-6">
             <div>
                 <h2 className="text-xl font-bold text-white">Coursework Subjects</h2>
-                <p className="text-slate-400 text-sm mt-1">Add subjects available for pre-PhD coursework.</p>
+                <p className="text-slate-400 text-sm mt-1">Add subjects available for pre-Ph.D coursework.</p>
             </div>
 
             {/* Add Subject Form */}

@@ -273,7 +273,7 @@ const Register = () => {
                 </div>
                 <div className="relative z-10 p-12 text-center space-y-6 max-w-lg">
                     <h2 className="text-4xl font-bold text-white leading-tight">Join the Academic Research Community</h2>
-                    <p className="text-indigo-200 text-lg">Manage your PhD journey, track progress, and collaborate seamlessly.</p>
+                    <p className="text-indigo-200 text-lg">Manage your Ph.D journey, track progress, and collaborate seamlessly.</p>
                 </div>
                 <div className="absolute bottom-0 w-full h-1/4 bg-gradient-to-t from-[#2e1065] to-transparent z-20"></div>
             </div>

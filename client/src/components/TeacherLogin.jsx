@@ -132,7 +132,7 @@ const TeacherLogin = () => {
                 <div className="absolute inset-0 flex items-end justify-center pb-16 z-20">
                     <div className="text-center space-y-3 max-w-xs">
                         <p className="text-amber-300/70 text-base font-medium">Faculty Portal</p>
-                        <h2 className="text-2xl font-bold text-white">University PhD Management</h2>
+                        <h2 className="text-2xl font-bold text-white">University Ph.D Management</h2>
                     </div>
                 </div>
                 <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-slate-950 to-transparent z-30"></div>

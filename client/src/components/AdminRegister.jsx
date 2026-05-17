@@ -273,7 +273,7 @@ const AdminRegister = () => {
                 </div>
                 <div className="relative z-10 p-12 text-center space-y-6 max-w-lg">
                     <h2 className="text-4xl font-bold text-white leading-tight">University Administration Portal</h2>
-                    <p className="text-emerald-200/70 text-lg">Central hub for managing PhD records, faculty, and administrative operations.</p>
+                    <p className="text-emerald-200/70 text-lg">Central hub for managing Ph.D records, faculty, and administrative operations.</p>
                 </div>
                 <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-slate-950 to-transparent z-20"></div>
             </div>
