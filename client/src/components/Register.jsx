@@ -176,7 +176,7 @@ const Register = () => {
 
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5001/api/auth/otp/send', {
+            const res = await fetch(`${API_BASE}/api/auth/otp/send`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: form.email })
@@ -197,7 +197,7 @@ const Register = () => {
         setLoading(true);
         try {
             // First verify the OTP
-            const otpRes = await fetch('http://localhost:5001/api/auth/otp/verify', {
+            const otpRes = await fetch(`${API_BASE}/api/auth/otp/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: form.email, otp: form.otp })
@@ -206,7 +206,7 @@ const Register = () => {
             if (!otpRes.ok) return alert(otpData.message);
 
             // Then register the student
-            const res = await fetch('http://localhost:5001/api/auth/register/student', {
+            const res = await fetch(`${API_BASE}/api/auth/register/student`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: form.email, password: form.password })

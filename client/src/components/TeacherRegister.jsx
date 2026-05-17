@@ -167,7 +167,7 @@ const TeacherRegister = () => {
         if (form.password !== form.confirmPassword) return alert('Passwords do not match');
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5001/api/auth/teacher/otp/send', {
+            const res = await fetch(`${API_BASE}/api/auth/teacher/otp/send`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: form.email })
@@ -187,7 +187,7 @@ const TeacherRegister = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const otpRes = await fetch('http://localhost:5001/api/auth/otp/verify', {
+            const otpRes = await fetch(`${API_BASE}/api/auth/otp/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: form.email, otp: form.otp })
@@ -195,7 +195,7 @@ const TeacherRegister = () => {
             const otpData = await otpRes.json();
             if (!otpRes.ok) return alert(otpData.message);
 
-            const res = await fetch('http://localhost:5001/api/auth/teacher/register', {
+            const res = await fetch(`${API_BASE}/api/auth/teacher/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: form.email, password: form.password })

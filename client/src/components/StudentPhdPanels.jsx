@@ -1,3 +1,4 @@
+import { API_BASE } from '../config.js';
 import React, { useState, useEffect } from 'react';
 import { Loader2, FileText, ExternalLink, Calendar, Users, Target, User, Mail, Phone, Building2, CheckCircle, LayoutList, Upload } from 'lucide-react';
 
@@ -9,7 +10,7 @@ export const StudentSacMembersPanel = ({ profile }) => {
     useEffect(() => {
         const fetchSacMembers = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/sac/assignments/${encodeURIComponent(profile.roll_no)}`);
+                const res = await fetch(`${API_BASE}/api/sac/assignments/${encodeURIComponent(profile.roll_no)}`);
                 const data = await res.json();
                 if (res.ok) setSacMembers(data.assignments);
             } catch (err) { console.error(err); }
@@ -86,7 +87,7 @@ export const StudentSacMembersPanel = ({ profile }) => {
     );
 };
 
-// ── Student PHD Registration Presentation View ────────────────────────────────
+// ── Student Ph.D Registration Presentation View ────────────────────────────────
 export const StudentPhdPresentationPanel = ({ profile }) => {
     const [presentations, setPresentations] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -94,7 +95,7 @@ export const StudentPhdPresentationPanel = ({ profile }) => {
     useEffect(() => {
         const fetchPresentations = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/phd/presentations?roll_no=${encodeURIComponent(profile.roll_no)}`);
+                const res = await fetch(`${API_BASE}/api/phd/presentations?roll_no=${encodeURIComponent(profile.roll_no)}`);
                 const data = await res.json();
                 if (res.ok) setPresentations(data.presentations);
             } catch (err) { console.error(err); }
@@ -147,7 +148,7 @@ export const StudentPhdPresentationPanel = ({ profile }) => {
                                     <span className="font-semibold">{new Date(p.presentation_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                                     <span className="text-xs px-2 py-0.5 bg-slate-100 rounded-lg text-slate-500 ml-2">Presentation Date</span>
                                 </div>
-                                <a href={`http://localhost:5001/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                <a href={`${API_BASE}/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
                                     className="flex items-center space-x-1.5 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-colors text-sm font-bold">
                                     <FileText size={16} /><span>View Synopsis PDF</span><ExternalLink size={14} className="opacity-70 ml-1" />
                                 </a>
@@ -167,7 +168,7 @@ export const StudentPhdPresentationPanel = ({ profile }) => {
     );
 };
 
-// ── Student PHD Registration Letter View ──────────────────────────────────────
+// ── Student Ph.D Registration Letter View ──────────────────────────────────────
 export const StudentPhdLetterPanel = ({ profile }) => {
     const [letters, setLetters] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -175,7 +176,7 @@ export const StudentPhdLetterPanel = ({ profile }) => {
     useEffect(() => {
         const fetchLetters = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/phd/letters?roll_no=${encodeURIComponent(profile.roll_no)}`);
+                const res = await fetch(`${API_BASE}/api/phd/letters?roll_no=${encodeURIComponent(profile.roll_no)}`);
                 const data = await res.json();
                 if (res.ok) setLetters(data.letters);
             } catch (err) { console.error(err); }
@@ -232,7 +233,7 @@ export const StudentPhdLetterPanel = ({ profile }) => {
                                 <p className="text-2xl font-black text-blue-600 font-mono tracking-tight">{l.registration_number}</p>
                             </div>
 
-                            <a href={`http://localhost:5001/${l.letter_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                            <a href={`${API_BASE}/${l.letter_pdf_path}`} target="_blank" rel="noopener noreferrer"
                                 className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-md shadow-blue-200">
                                 <FileText size={18} />
                                 <span>Download Official Letter</span>
@@ -245,7 +246,7 @@ export const StudentPhdLetterPanel = ({ profile }) => {
         </div>
     );
 };
-// ── Student PHD Progress Report View ──────────────────────────────────────────
+// ── Student Ph.D Progress Report View ──────────────────────────────────────────
 export const StudentPhdProgressPanel = ({ profile }) => {
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -259,7 +260,7 @@ export const StudentPhdProgressPanel = ({ profile }) => {
     useEffect(() => {
         const fetchReports = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/phd/progress-reports?roll_no=${encodeURIComponent(profile.roll_no)}`);
+                const res = await fetch(`${API_BASE}/api/phd/progress-reports?roll_no=${encodeURIComponent(profile.roll_no)}`);
                 const data = await res.json();
                 if (res.ok) setReports(data.reports);
             } catch (err) { console.error(err); }
@@ -335,7 +336,7 @@ export const StudentPhdProgressPanel = ({ profile }) => {
                                         </div>
                                     </div>
                                     {r.is_present && r.report_pdf_path && (
-                                        <a href={`http://localhost:5001/${r.report_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                        <a href={`${API_BASE}/${r.report_pdf_path}`} target="_blank" rel="noopener noreferrer"
                                             className="flex items-center space-x-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all text-sm font-bold border border-blue-100/50">
                                             <FileText size={16} /><span>View Report</span><ExternalLink size={14} />
                                         </a>
@@ -385,7 +386,7 @@ export const StudentPreSubmissionPanel = ({ profile }) => {
     const fetchSynopses = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`http://localhost:5001/api/phd/extended-synopses?roll_no=${encodeURIComponent(profile.roll_no)}`);
+            const res = await fetch(`${API_BASE}/api/phd/extended-synopses?roll_no=${encodeURIComponent(profile.roll_no)}`);
             const data = await res.json();
             if (res.ok) setSynopses(data.synopses);
         } catch (err) { console.error(err); }
@@ -415,7 +416,7 @@ export const StudentPreSubmissionPanel = ({ profile }) => {
 
         setUploading(true); setError(''); setSuccess('');
         try {
-            const res = await fetch(`http://localhost:5001/api/phd/extended-synopses`, { method: 'POST', body });
+            const res = await fetch(`${API_BASE}/api/phd/extended-synopses`, { method: 'POST', body });
             const data = await res.json();
             if (res.ok) {
                 setSuccess('Extended synopsis uploaded successfully!');
@@ -502,7 +503,7 @@ export const StudentPreSubmissionPanel = ({ profile }) => {
                                 <p className="text-sm text-slate-500 font-medium mt-0.5">Uploaded on {new Date(s.uploaded_at).toLocaleDateString('en-GB')}</p>
                             </div>
                             <div className="flex-shrink-0">
-                                <a href={`http://localhost:5001/${s.file_path}`} target="_blank" rel="noopener noreferrer"
+                                <a href={`${API_BASE}/${s.file_path}`} target="_blank" rel="noopener noreferrer"
                                     className="flex items-center space-x-1.5 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-colors text-sm font-bold">
                                     <FileText size={16} /><span>View PDF</span><ExternalLink size={14} className="opacity-70 ml-1" />
                                 </a>

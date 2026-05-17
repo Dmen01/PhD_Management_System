@@ -20,7 +20,7 @@ const TeacherLogin = () => {
         setLoading(true);
         setLoginError('');
         try {
-            const res = await fetch('http://localhost:5001/api/auth/teacher/login', {
+            const res = await fetch(`${API_BASE}/api/auth/teacher/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })

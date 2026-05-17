@@ -1,3 +1,4 @@
+import { API_BASE } from '../config.js';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
     LayoutDashboard, Users, GraduationCap, ClipboardList, BookOpen, 
@@ -26,11 +27,11 @@ const NAV = [
         ]
     },
     {
-        id: 'phd', label: 'PHD', icon: BookOpen,
+        id: 'phd', label: 'Ph.D', icon: BookOpen,
         children: [
-            { id: 'phd-presentation', label: 'PHD Registration Presentation', icon: ClipboardCheck },
-            { id: 'phd-letter', label: 'PHD Registration Letter', icon: FileText },
-            { id: 'phd-progress', label: 'PHD Progress Report', icon: FileText },
+            { id: 'phd-presentation', label: 'Ph.D Registration Presentation', icon: ClipboardCheck },
+            { id: 'phd-letter', label: 'Ph.D Registration Letter', icon: FileText },
+            { id: 'phd-progress', label: 'Ph.D Progress Report', icon: FileText },
             { id: 'pre-submission', label: 'Pre-Submission Presentation', icon: Target },
             { id: 'final-submission', label: 'Final Submission', icon: Award },
         ]
@@ -215,7 +216,7 @@ const ReassignTeacherModal = ({ sourceTeacher, allTeachers, onSuccess, onClose }
         setSubmitting(true);
         setError('');
         try {
-            const res = await fetch('http://localhost:5001/api/admin/reassign-teacher', {
+            const res = await fetch(`${API_BASE}/api/admin/reassign-teacher`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ old_teacher_id: sourceTeacher.teacher_id, new_teacher_id: newTeacherId })
@@ -401,8 +402,8 @@ const UserManagement = () => {
         setError('');
         try {
             const [studRes, teachRes] = await Promise.all([
-                fetch('http://localhost:5001/api/admin/students'),
-                fetch('http://localhost:5001/api/admin/teachers'),
+                fetch(`${API_BASE}/api/admin/students`),
+                fetch(`${API_BASE}/api/admin/teachers`),
             ]);
             const [studData, teachData] = await Promise.all([studRes.json(), teachRes.json()]);
             if (studRes.ok) setStudents(studData.students);
@@ -424,7 +425,7 @@ const UserManagement = () => {
         }
         if (!window.confirm(`Permanently remove ${teacher.first_name} ${teacher.last_name} from the system?`)) return;
         try {
-            const res = await fetch(`http://localhost:5001/api/admin/delete-teacher/${teacher.teacher_id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/admin/delete-teacher/${teacher.teacher_id}`, { method: 'DELETE' });
             const data = await res.json();
             if (res.ok) {
                 setTeachers(prev => prev.filter(t => t.teacher_id !== teacher.teacher_id));
@@ -583,7 +584,7 @@ const CourseworkSubjects = () => {
 
     const fetchSubjects = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/admin/subjects');
+            const res = await fetch(`${API_BASE}/api/admin/subjects`);
             const data = await res.json();
             if (res.ok) setSubjects(data.subjects);
         } catch (err) {
@@ -612,7 +613,7 @@ const CourseworkSubjects = () => {
         formData.append('syllabus', form.syllabus);
 
         try {
-            const res = await fetch('http://localhost:5001/api/admin/subjects', {
+            const res = await fetch(`${API_BASE}/api/admin/subjects`, {
                 method: 'POST',
                 body: formData,
             });
@@ -633,7 +634,7 @@ const CourseworkSubjects = () => {
     const handleDeleteSubject = async (id, name) => {
         if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
         try {
-            const res = await fetch(`http://localhost:5001/api/admin/subjects/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/admin/subjects/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 setSubjects(prev => prev.filter(s => s.id !== id));
                 setSuccess(`"${name}" deleted successfully.`);
@@ -762,7 +763,7 @@ const CourseworkSubjects = () => {
                                         </td>
                                         <td className="px-5 py-3">
                                             {s.syllabus_pdf_path ? (
-                                                <a href={`http://localhost:5001/${s.syllabus_pdf_path}`} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 text-emerald-400 hover:text-emerald-300 transition-colors">
+                                                <a href={`${API_BASE}/${s.syllabus_pdf_path}`} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1 text-emerald-400 hover:text-emerald-300 transition-colors">
                                                     <FileText size={14} />
                                                     <span className="text-xs font-semibold underline-offset-2 hover:underline">View PDF</span>
                                                     <ExternalLink size={12} className="opacity-70" />
@@ -806,7 +807,7 @@ const AuthorizedTeachers = () => {
 
     const fetchEntries = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/admin/approved-teachers');
+            const res = await fetch(`${API_BASE}/api/admin/approved-teachers`);
             const data = await res.json();
             if (res.ok) setEntries(data.teachers);
         } catch (err) {
@@ -825,7 +826,7 @@ const AuthorizedTeachers = () => {
         setError('');
         setSubmitting(true);
         try {
-            const res = await fetch('http://localhost:5001/api/admin/approved-teachers', {
+            const res = await fetch(`${API_BASE}/api/admin/approved-teachers`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(form),
@@ -848,7 +849,7 @@ const AuthorizedTeachers = () => {
     const handleEdit = async (id) => {
         setError('');
         try {
-            const res = await fetch(`http://localhost:5001/api/admin/approved-teachers/${id}`, {
+            const res = await fetch(`${API_BASE}/api/admin/approved-teachers/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(editForm),
@@ -866,7 +867,7 @@ const AuthorizedTeachers = () => {
     const handleDelete = async (id, name) => {
         if (!window.confirm(`Remove "${name}" from the approved list?`)) return;
         try {
-            const res = await fetch(`http://localhost:5001/api/admin/approved-teachers/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/admin/approved-teachers/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 setEntries(prev => prev.filter(t => t.id !== id));
                 flash(`${name} removed.`);
@@ -1053,9 +1054,9 @@ const AssignStudents = () => {
         const fetchAll = async () => {
             try {
                 const [tRes, sRes, aRes] = await Promise.all([
-                    fetch('http://localhost:5001/api/admin/teachers'),
-                    fetch('http://localhost:5001/api/admin/students'),
-                    fetch('http://localhost:5001/api/admin/assignments'),
+                    fetch(`${API_BASE}/api/admin/teachers`),
+                    fetch(`${API_BASE}/api/admin/students`),
+                    fetch(`${API_BASE}/api/admin/assignments`),
                 ]);
                 const [tData, sData, aData] = await Promise.all([tRes.json(), sRes.json(), aRes.json()]);
                 if (tRes.ok) setTeachers(tData.teachers);
@@ -1093,7 +1094,7 @@ const AssignStudents = () => {
         if (!selectedStudents.length) { setError('Please add at least one student.'); return; }
         setSubmitting(true);
         try {
-            const res = await fetch('http://localhost:5001/api/admin/assignments', {
+            const res = await fetch(`${API_BASE}/api/admin/assignments`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1104,7 +1105,7 @@ const AssignStudents = () => {
             });
             const data = await res.json();
             if (!res.ok) { setError(data.message); return; }
-            const aRes = await fetch('http://localhost:5001/api/admin/assignments');
+            const aRes = await fetch(`${API_BASE}/api/admin/assignments`);
             const aData = await aRes.json();
             if (aRes.ok) setAssignments(aData.assignments);
             flash(`${selectedStudents.length} student(s) assigned successfully!`);
@@ -1121,7 +1122,7 @@ const AssignStudents = () => {
     const handleRemove = async (id) => {
         if (!window.confirm('Remove this assignment?')) return;
         try {
-            const res = await fetch(`http://localhost:5001/api/admin/assignments/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/admin/assignments/${id}`, { method: 'DELETE' });
             if (res.ok) { setAssignments(prev => prev.filter(a => a.id !== id)); flash('Assignment removed.'); }
         } catch (err) {
             setError('Failed to connect to server.');
@@ -1354,7 +1355,7 @@ const StudentVerifications = () => {
     useEffect(() => {
         const fetchUnverified = async () => {
             try {
-                const res = await fetch('http://localhost:5001/api/admin/unverified-students');
+                const res = await fetch(`${API_BASE}/api/admin/unverified-students`);
                 const data = await res.json();
                 if (res.ok) setUnverified(data.students);
             } catch (err) {
@@ -1370,7 +1371,7 @@ const StudentVerifications = () => {
     const handleVerify = async (id, name) => {
         setError('');
         try {
-            const res = await fetch(`http://localhost:5001/api/admin/verify-student/${id}`, { method: 'POST' });
+            const res = await fetch(`${API_BASE}/api/admin/verify-student/${id}`, { method: 'POST' });
             if (res.ok) {
                 setUnverified(prev => prev.filter(s => s.id !== id));
                 setSuccess(`Student ${name} verified successfully.`);
@@ -1388,7 +1389,7 @@ const StudentVerifications = () => {
         if (!window.confirm(`Are you sure you want to REJECT and delete the registration request for ${name}?`)) return;
         setError('');
         try {
-            const res = await fetch(`http://localhost:5001/api/admin/reject-student/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/admin/reject-student/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 setUnverified(prev => prev.filter(s => s.id !== id));
                 setSuccess(`Registration for ${name} rejected and deleted.`);
@@ -1510,7 +1511,7 @@ const NotificationsPanel = () => {
 
     const fetchNotifications = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/notifications/admin');
+            const res = await fetch(`${API_BASE}/api/notifications/admin`);
             const data = await res.json();
             if (res.ok) setNotifications(data.notifications);
         } catch (err) {
@@ -1521,7 +1522,7 @@ const NotificationsPanel = () => {
     };
 
     useEffect(() => {
-        fetch('http://localhost:5001/api/notifications/filter-options')
+        fetch(`${API_BASE}/api/notifications/filter-options`)
             .then(r => r.json()).then(d => setFilterOptions(d)).catch(console.error);
         fetchNotifications();
     }, []);
@@ -1538,7 +1539,7 @@ const NotificationsPanel = () => {
             if (selYears.length) fd.append('admission_years', JSON.stringify(selYears));
             if (pdfFile) fd.append('pdf', pdfFile);
 
-            const res = await fetch('http://localhost:5001/api/notifications', { method: 'POST', body: fd });
+            const res = await fetch(`${API_BASE}/api/notifications`, { method: 'POST', body: fd });
             const data = await res.json();
             if (res.ok) {
                 setNotifications(prev => [data.notification, ...prev]);
@@ -1559,7 +1560,7 @@ const NotificationsPanel = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this notification?')) return;
         try {
-            const res = await fetch(`http://localhost:5001/api/notifications/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/notifications/${id}`, { method: 'DELETE' });
             if (res.ok) setNotifications(prev => prev.filter(n => n.id !== id));
         } catch (err) { console.error(err); }
     };
@@ -1584,7 +1585,7 @@ const NotificationsPanel = () => {
                 {n.target_admission_modes && <span className="text-[10px] bg-blue-900/40 text-blue-300 border border-blue-700/40 px-2 py-0.5 rounded-full">Mode: {n.target_admission_modes.join(', ')}</span>}
                 {n.target_admission_years && <span className="text-[10px] bg-amber-900/40 text-amber-300 border border-amber-700/40 px-2 py-0.5 rounded-full">Year: {n.target_admission_years.join(', ')}</span>}
                 {n.pdf_path && (
-                    <a href={`http://localhost:5001/${n.pdf_path}`} target="_blank" rel="noopener noreferrer"
+                    <a href={`${API_BASE}/${n.pdf_path}`} target="_blank" rel="noopener noreferrer"
                         className="flex items-center space-x-1 text-emerald-400 hover:text-emerald-300 text-xs transition-colors">
                         <FileText size={12} /><span>Attachment</span><ExternalLink size={10} />
                     </a>
@@ -1689,7 +1690,7 @@ const ValidateResultPanel = () => {
 
     const fetchResults = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/sac/results');
+            const res = await fetch(`${API_BASE}/api/sac/results`);
             const data = await res.json();
             if (res.ok) setResults(data.results);
         } catch (err) { console.error(err); }
@@ -1701,7 +1702,7 @@ const ValidateResultPanel = () => {
     const verify = async (roll_no) => {
         setProcessing(p => ({ ...p, [roll_no]: 'verifying' }));
         try {
-            const res = await fetch(`http://localhost:5001/api/sac/results/${roll_no}/verify`, { method: 'POST' });
+            const res = await fetch(`${API_BASE}/api/sac/results/${roll_no}/verify`, { method: 'POST' });
             if (res.ok) setResults(prev => prev.map(r => r.roll_no === roll_no ? { ...r, verified_by_admin: true, admin_verified_at: new Date().toISOString() } : r));
         } catch (err) { console.error(err); }
         finally { setProcessing(p => ({ ...p, [roll_no]: null })); }
@@ -1711,7 +1712,7 @@ const ValidateResultPanel = () => {
         if (!window.confirm(`Reject and delete the result submitted by ${name}? The student will be able to re-upload.`)) return;
         setProcessing(p => ({ ...p, [roll_no]: 'rejecting' }));
         try {
-            const res = await fetch(`http://localhost:5001/api/sac/results/${roll_no}/reject`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/sac/results/${roll_no}/reject`, { method: 'DELETE' });
             if (res.ok) setResults(prev => prev.filter(r => r.roll_no !== roll_no));
         } catch (err) { console.error(err); }
         finally { setProcessing(p => ({ ...p, [roll_no]: null })); }
@@ -1759,7 +1760,7 @@ const ValidateResultPanel = () => {
                                             </button>
                                         </>
                                     )}
-                                    <a href={`http://localhost:5001/${r.result_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                    <a href={`${API_BASE}/${r.result_pdf_path}`} target="_blank" rel="noopener noreferrer"
                                         className="flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-xl transition-colors">
                                         <FileText size={12} /><span>View PDF</span><ExternalLink size={10} className="ml-1" />
                                     </a>
@@ -1787,7 +1788,7 @@ const SacMembersPanel = () => {
 
     const fetchMembers = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/sac/members');
+            const res = await fetch(`${API_BASE}/api/sac/members`);
             const data = await res.json();
             if (res.ok) setMembers(data.members);
         } catch (err) { console.error(err); }
@@ -1802,7 +1803,7 @@ const SacMembersPanel = () => {
         e.preventDefault();
         setSubmitting(true); setError(''); setSuccess('');
         try {
-            const res = await fetch('http://localhost:5001/api/sac/members', {
+            const res = await fetch(`${API_BASE}/api/sac/members`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form)
             });
             const data = await res.json();
@@ -1818,7 +1819,7 @@ const SacMembersPanel = () => {
     const handleDelete = async (id, name) => {
         if (!window.confirm(`Remove ${name} from the SAC member pool?`)) return;
         try {
-            const res = await fetch(`http://localhost:5001/api/sac/members/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/sac/members/${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (res.ok) setMembers(prev => prev.filter(m => m.id !== id));
             else alert(data.message);
@@ -1918,8 +1919,8 @@ const SacAssignPanel = () => {
         const fetchAll = async () => {
             try {
                 const [sRes, mRes] = await Promise.all([
-                    fetch('http://localhost:5001/api/sac/students-with-sac'),
-                    fetch('http://localhost:5001/api/sac/members'),
+                    fetch(`${API_BASE}/api/sac/students-with-sac`),
+                    fetch(`${API_BASE}/api/sac/members`),
                 ]);
                 const [sd, md] = await Promise.all([sRes.json(), mRes.json()]);
                 if (sRes.ok) setStudents(sd.students);
@@ -1936,7 +1937,7 @@ const SacAssignPanel = () => {
         if (selected[rollNo] !== undefined) return;
         setLoadingAssign(p => ({ ...p, [rollNo]: true }));
         try {
-            const res = await fetch(`http://localhost:5001/api/sac/assignments/${rollNo}`);
+            const res = await fetch(`${API_BASE}/api/sac/assignments/${rollNo}`);
             const data = await res.json();
             if (res.ok) setSelected(prev => ({ ...prev, [rollNo]: new Set(data.assignments.map(a => a.id)) }));
         } catch (err) { console.error(err); }
@@ -1957,7 +1958,7 @@ const SacAssignPanel = () => {
         setSaving(p => ({ ...p, [rollNo]: true }));
         const ids = [...(selected[rollNo] || [])];
         try {
-            const res = await fetch(`http://localhost:5001/api/sac/assignments/${rollNo}`, {
+            const res = await fetch(`${API_BASE}/api/sac/assignments/${rollNo}`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ sac_member_ids: ids })
             });

@@ -1,3 +1,4 @@
+import { API_BASE } from '../config.js';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,7 +50,7 @@ const NotificationBell = ({ fetchUrl, accentColor = 'blue' }) => {
             <div className="flex flex-wrap items-center gap-2 pt-0.5">
                 <span className="text-xs text-slate-500">{new Date(n.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                 {n.pdf_path && (
-                    <a href={`http://localhost:5001/${n.pdf_path}`} target="_blank" rel="noopener noreferrer"
+                    <a href={`${API_BASE}/${n.pdf_path}`} target="_blank" rel="noopener noreferrer"
                         className={`flex items-center space-x-1 text-xs ${colors.accent} hover:opacity-80 transition-opacity`}>
                         <FileText size={11} /><span>View Attachment</span><ExternalLink size={9} />
                     </a>
@@ -225,7 +226,7 @@ const PrePhdCoursework = ({ profile }) => {
     useEffect(() => {
         const fetchCoursework = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/student/coursework?roll_no=${encodeURIComponent(profile.roll_no)}`);
+                const res = await fetch(`${API_BASE}/api/student/coursework?roll_no=${encodeURIComponent(profile.roll_no)}`);
                 const data = await res.json();
                 if (res.ok) setSubjects(data.subjects);
             } catch (err) {
@@ -286,7 +287,7 @@ const PrePhdCoursework = ({ profile }) => {
                                     </div>
                                     {sub.syllabus_pdf_path && (
                                         <a
-                                            href={`http://localhost:5001/${sub.syllabus_pdf_path}`}
+                                            href={`${API_BASE}/${sub.syllabus_pdf_path}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="inline-flex items-center px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-colors"
@@ -314,7 +315,7 @@ const MyMentors = ({ profile }) => {
     useEffect(() => {
         const fetchMentors = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/student/mentors?roll_no=${encodeURIComponent(profile.roll_no)}`);
+                const res = await fetch(`${API_BASE}/api/student/mentors?roll_no=${encodeURIComponent(profile.roll_no)}`);
                 const data = await res.json();
                 if (res.ok) setMentors(data.mentors);
             } catch (err) {
@@ -434,7 +435,7 @@ const PrePhdResult = ({ profile }) => {
     const fetchResult = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`http://localhost:5001/api/student/result?roll_no=${encodeURIComponent(profile.roll_no)}`);
+            const res = await fetch(`${API_BASE}/api/student/result?roll_no=${encodeURIComponent(profile.roll_no)}`);
             if (res.ok) {
                 const data = await res.json();
                 setResultData(data.result);
@@ -473,7 +474,7 @@ const PrePhdResult = ({ profile }) => {
 
         setUploading(true); setError('');
         try {
-            const res = await fetch(`http://localhost:5001/api/student/result`, { method: 'POST', body });
+            const res = await fetch(`${API_BASE}/api/student/result`, { method: 'POST', body });
             const data = await res.json();
             if (res.ok) {
                 fetchResult();
@@ -544,7 +545,7 @@ const PrePhdResult = ({ profile }) => {
                         </div>
 
                         <a
-                            href={`http://localhost:5001/${resultData.result_pdf_path}`}
+                            href={`${API_BASE}/${resultData.result_pdf_path}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-semibold text-white transition-all shadow-sm shadow-blue-200"
@@ -645,12 +646,12 @@ const StudentDashboard = () => {
             ]
         },
         {
-            id: 'phd', label: 'PHD', icon: Target, locked: !profileData?.pre_phd_verified_by_admin,
+            id: 'phd', label: 'Ph.D', icon: Target, locked: !profileData?.pre_phd_verified_by_admin,
             children: [
                 { id: 'sac-members', label: 'My SAC Members', icon: Users },
-                { id: 'phd-presentation', label: 'PHD Registration Presentation', icon: LayoutList },
-                { id: 'phd-letter', label: 'PHD Registration Letter', icon: FileText },
-                { id: 'phd-progress', label: 'PHD Progress Report', icon: ClipboardList },
+                { id: 'phd-presentation', label: 'Ph.D Registration Presentation', icon: LayoutList },
+                { id: 'phd-letter', label: 'Ph.D Registration Letter', icon: FileText },
+                { id: 'phd-progress', label: 'Ph.D Progress Report', icon: ClipboardList },
                 { id: 'extended-synopsis', label: 'Extended Synopsis', icon: Target }
             ]
         }
@@ -667,7 +668,7 @@ const StudentDashboard = () => {
     const checkProfile = async () => {
         try {
             const res = await fetch(
-                `http://localhost:5001/api/student/profile?email=${encodeURIComponent(studentEmail)}`
+                `${API_BASE}/api/student/profile?email=${encodeURIComponent(studentEmail)}`
             );
             if (res.status === 404) setShowModal(true);
             else if (res.ok) { 
@@ -751,7 +752,7 @@ const StudentDashboard = () => {
                     <div className="absolute right-20 bottom-0 w-28 h-28 bg-white/5 rounded-full translate-y-1/2" />
                     <div className="relative z-10 flex items-center space-x-3">
                         <NotificationBell
-                            fetchUrl={`http://localhost:5001/api/notifications/student?email=${encodeURIComponent(studentEmail)}`}
+                            fetchUrl={`${API_BASE}/api/notifications/student?email=${encodeURIComponent(studentEmail)}`}
                             accentColor="blue"
                         />
                         <div className="hidden md:flex items-center justify-center w-20 h-20 bg-white/15 rounded-2xl backdrop-blur-sm">

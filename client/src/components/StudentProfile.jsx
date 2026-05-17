@@ -74,7 +74,7 @@ const ChangePassword = ({ email, onCancel }) => {
     const sendOtp = async () => {
         setStep('sending'); setError('');
         try {
-            const res = await fetch('http://localhost:5001/api/auth/otp/send-reset', {
+            const res = await fetch(`${API_BASE}/api/auth/otp/send-reset`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
             });
@@ -90,7 +90,7 @@ const ChangePassword = ({ email, onCancel }) => {
         if (pw.newPassword !== pw.confirmPassword) return setError('Passwords do not match');
         setLoading(true); setError('');
         try {
-            const res = await fetch('http://localhost:5001/api/auth/password/reset', {
+            const res = await fetch(`${API_BASE}/api/auth/password/reset`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, otp, newPassword: pw.newPassword })
             });
@@ -168,7 +168,7 @@ const StudentProfile = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/student/profile?email=${encodeURIComponent(studentEmail)}`);
+                const res = await fetch(`${API_BASE}/api/student/profile?email=${encodeURIComponent(studentEmail)}`);
                 if (res.ok) { const d = await res.json(); setProfile(d.profile); }
             } catch (err) { console.error(err); }
             finally { setLoading(false); }

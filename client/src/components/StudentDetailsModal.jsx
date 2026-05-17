@@ -1,3 +1,4 @@
+import { API_BASE } from '../config.js';
 import React, { useState, useEffect } from 'react';
 import { 
     X, User, Mail, Phone, Building2, Calendar, Hash, Award, 
@@ -45,7 +46,7 @@ const ModalFeeViewer = ({ rollNo, admissionYear }) => {
         setSemester(sem);
         setFetching(true);
         try {
-            const res = await fetch(`http://localhost:5001/api/fee?rollNo=${rollNo}&semester=${sem}`);
+            const res = await fetch(`${API_BASE}/api/fee?rollNo=${rollNo}&semester=${sem}`);
             if (res.ok) {
                 const d = await res.json();
                 setFeeData(d.fee);
@@ -77,7 +78,7 @@ const ModalFeeViewer = ({ rollNo, admissionYear }) => {
                             <p className="text-[10px] font-bold text-slate-400 uppercase">Payment Date</p>
                             <p className="text-sm font-bold text-slate-700">{new Date(feeData.payment_date).toLocaleDateString('en-GB')}</p>
                         </div>
-                        <a href={`http://localhost:5001/${feeData.receipt_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                        <a href={`${API_BASE}/${feeData.receipt_pdf_path}`} target="_blank" rel="noopener noreferrer"
                            className="flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all">
                             <FileText size={14} /><span>View Receipt</span>
                         </a>
@@ -96,7 +97,7 @@ const ModalResultViewer = ({ rollNo }) => {
     useEffect(() => {
         const fetchResult = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/student/result?roll_no=${encodeURIComponent(rollNo)}`);
+                const res = await fetch(`${API_BASE}/api/student/result?roll_no=${encodeURIComponent(rollNo)}`);
                 if (res.ok) {
                     const d = await res.json();
                     setResult(d.result);
@@ -121,7 +122,7 @@ const ModalResultViewer = ({ rollNo }) => {
                     {result.verified_by_admin ? 'Verified by Admin' : 'Pending Verification'}
                 </div>
             </div>
-            <a href={`http://localhost:5001/${result.result_pdf_path}`} target="_blank" rel="noopener noreferrer"
+            <a href={`${API_BASE}/${result.result_pdf_path}`} target="_blank" rel="noopener noreferrer"
                className="flex items-center justify-center space-x-2 w-full py-3 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all">
                 <FileText size={14} /><span>View Marksheet / Result</span>
             </a>
@@ -129,7 +130,7 @@ const ModalResultViewer = ({ rollNo }) => {
     );
 };
 
-// ── PhD Sections ─────────────────────────────────────────────────────────────
+// ── Ph.D Sections ─────────────────────────────────────────────────────────────
 const ModalSacView = ({ rollNo }) => {
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -137,7 +138,7 @@ const ModalSacView = ({ rollNo }) => {
     useEffect(() => {
         const fetchSac = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/sac/assignments/${encodeURIComponent(rollNo)}`);
+                const res = await fetch(`${API_BASE}/api/sac/assignments/${encodeURIComponent(rollNo)}`);
                 if (res.ok) {
                     const d = await res.json();
                     setMembers(d.assignments);
@@ -180,7 +181,7 @@ const ModalPresentationView = ({ rollNo }) => {
     useEffect(() => {
         const fetch_ = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/phd/presentations?roll_no=${encodeURIComponent(rollNo)}`);
+                const res = await fetch(`${API_BASE}/api/phd/presentations?roll_no=${encodeURIComponent(rollNo)}`);
                 if (res.ok) {
                     const d = await res.json();
                     setList(d.presentations);
@@ -215,7 +216,7 @@ const ModalPresentationView = ({ rollNo }) => {
                                 <p className="text-xs text-slate-700 italic">"{p.remarks}"</p>
                             </div>
                         )}
-                        <a href={`http://localhost:5001/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                        <a href={`${API_BASE}/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
                            className="flex items-center space-x-1.5 text-xs font-bold text-blue-600 hover:underline">
                             <FileText size={14} /><span>View Synopsis PDF</span>
                         </a>
@@ -233,7 +234,7 @@ const ModalLetterView = ({ rollNo }) => {
     useEffect(() => {
         const fetch_ = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/phd/letters?roll_no=${encodeURIComponent(rollNo)}`);
+                const res = await fetch(`${API_BASE}/api/phd/letters?roll_no=${encodeURIComponent(rollNo)}`);
                 if (res.ok) {
                     const d = await res.json();
                     setLetters(d.letters);
@@ -262,7 +263,7 @@ const ModalLetterView = ({ rollNo }) => {
                                 <p className="text-xs font-bold text-slate-700">{new Date(l.uploaded_at).toLocaleDateString('en-GB')}</p>
                             </div>
                         </div>
-                        <a href={`http://localhost:5001/${l.letter_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                        <a href={`${API_BASE}/${l.letter_pdf_path}`} target="_blank" rel="noopener noreferrer"
                            className="flex items-center justify-center space-x-2 w-full py-3 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-all shadow-md shadow-blue-200">
                             <FileText size={14} /><span>Download Registration Letter</span>
                         </a>
@@ -282,7 +283,7 @@ const ModalProgressView = ({ rollNo }) => {
     useEffect(() => {
         const fetch_ = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/phd/progress-reports?roll_no=${encodeURIComponent(rollNo)}`);
+                const res = await fetch(`${API_BASE}/api/phd/progress-reports?roll_no=${encodeURIComponent(rollNo)}`);
                 if (res.ok) {
                     const d = await res.json();
                     setReports(d.reports);
@@ -324,7 +325,7 @@ const ModalProgressView = ({ rollNo }) => {
                             </div>
                         )}
                         {r.report_pdf_path && (
-                            <a href={`http://localhost:5001/${r.report_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                            <a href={`${API_BASE}/${r.report_pdf_path}`} target="_blank" rel="noopener noreferrer"
                                className="inline-flex items-center space-x-1 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold hover:bg-blue-100 transition-colors">
                                 <FileText size={12} /><span>View Full Report PDF</span>
                             </a>
@@ -345,8 +346,8 @@ const ModalPreSubmissionView = ({ rollNo }) => {
         const load = async () => {
             try {
                 const [synRes, presRes] = await Promise.all([
-                    fetch(`http://localhost:5001/api/phd/extended-synopses?roll_no=${encodeURIComponent(rollNo)}`),
-                    fetch(`http://localhost:5001/api/phd/pre-submissions?roll_no=${encodeURIComponent(rollNo)}`)
+                    fetch(`${API_BASE}/api/phd/extended-synopses?roll_no=${encodeURIComponent(rollNo)}`),
+                    fetch(`${API_BASE}/api/phd/pre-submissions?roll_no=${encodeURIComponent(rollNo)}`)
                 ]);
                 if (synRes.ok) { const d = await synRes.json(); setSynopses(d.synopses); }
                 if (presRes.ok) { const d = await presRes.json(); setPresentations(d.preSubmissions); }
@@ -371,7 +372,7 @@ const ModalPreSubmissionView = ({ rollNo }) => {
                                 <p className="text-xs font-bold text-emerald-700">Submitted</p>
                                 <p className="text-[10px] text-slate-500 mt-0.5">{new Date(s.uploaded_at).toLocaleDateString('en-GB')}</p>
                             </div>
-                            <a href={`http://localhost:5001/${s.file_path}`} target="_blank" rel="noopener noreferrer"
+                            <a href={`${API_BASE}/${s.file_path}`} target="_blank" rel="noopener noreferrer"
                                 className="flex items-center space-x-1.5 text-xs font-bold text-blue-600 hover:underline">
                                 <FileText size={14} /><span>View PDF</span>
                             </a>
@@ -392,7 +393,7 @@ const ModalPreSubmissionView = ({ rollNo }) => {
                                 <span className={`text-[10px] font-bold uppercase ${p.remark === 'Accepted' ? 'text-emerald-600' : 'text-red-600'}`}>{p.remark}</span>
                             </div>
                             <div className="p-4 space-y-3">
-                                <a href={`http://localhost:5001/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                <a href={`${API_BASE}/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
                                    className="flex items-center space-x-1.5 text-xs font-bold text-blue-600 hover:underline">
                                     <FileText size={14} /><span>View Pre-Submission Report</span>
                                 </a>
@@ -427,7 +428,7 @@ const ModalFinalSubmissionView = ({ rollNo }) => {
     useEffect(() => {
         const load = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/phd/final-submissions?roll_no=${encodeURIComponent(rollNo)}`);
+                const res = await fetch(`${API_BASE}/api/phd/final-submissions?roll_no=${encodeURIComponent(rollNo)}`);
                 if (res.ok) { const d = await res.json(); setFinalSubmissions(d.finalSubmissions); }
             } catch (err) { console.error(err); }
             finally { setLoading(false); }
@@ -452,7 +453,7 @@ const ModalFinalSubmissionView = ({ rollNo }) => {
                             <span className="text-xs font-semibold">{new Date(f.final_presentation_date).toLocaleDateString('en-GB')}</span>
                             <span className="text-[10px] text-slate-400 ml-1">Final Presentation Date</span>
                         </div>
-                        <a href={`http://localhost:5001/${f.notification_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                        <a href={`${API_BASE}/${f.notification_pdf_path}`} target="_blank" rel="noopener noreferrer"
                             className="flex items-center space-x-1.5 text-xs font-bold text-blue-600 hover:underline">
                             <FileText size={14} /><span>View Final Notification</span>
                         </a>
@@ -470,7 +471,7 @@ const StudentDetailsModal = ({ student, onClose }) => {
         { id: 'contact',   label: 'Contact & Admission', icon: User },
         { id: 'fee',       label: 'Fee Details',         icon: CreditCard },
         { id: 'coursework',label: 'Pre-PhD Result',      icon: BookOpen },
-        { id: 'phd',       label: 'PhD Section',         icon: GraduationCap },
+        { id: 'phd',       label: 'Ph.D Section',         icon: GraduationCap },
     ];
 
     const PHD_SUBSECTIONS = [
@@ -591,7 +592,7 @@ const StudentDetailsModal = ({ student, onClose }) => {
 
                                 {activeTopic === 'phd' && (
                                     <div className="space-y-8">
-                                        <SectionTitle icon={GraduationCap} title="PhD Section" />
+                                        <SectionTitle icon={GraduationCap} title="Ph.D Section" />
                                         
                                         {/* Sub-navigation for PhD */}
                                         <div className="flex items-center space-x-1 bg-slate-100 p-1.5 rounded-2xl mb-8">

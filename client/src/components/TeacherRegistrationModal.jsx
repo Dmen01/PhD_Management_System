@@ -70,7 +70,7 @@ const TeacherRegistrationModal = ({ email, onComplete }) => {
 
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5001/api/teacher/profile', {
+            const res = await fetch(`${API_BASE}/api/teacher/profile`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

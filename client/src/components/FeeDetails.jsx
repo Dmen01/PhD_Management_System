@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 const SEMESTERS = Array.from({ length: 16 }, (_, i) => i + 1);
-const API = 'http://localhost:5001';
+const API = API_BASE;
 
 // ── View Mode — read-only record display ──────────────────────────────────────
 const FeeRecord = ({ fee }) => {

@@ -44,7 +44,7 @@ const NotificationBell = ({ fetchUrl, accentColor = 'amber' }) => {
             <div className="flex flex-wrap items-center gap-2 pt-0.5">
                 <span className="text-xs text-slate-500">{new Date(n.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                 {n.pdf_path && (
-                    <a href={`http://localhost:5001/${n.pdf_path}`} target="_blank" rel="noopener noreferrer"
+                    <a href={`${API_BASE}/${n.pdf_path}`} target="_blank" rel="noopener noreferrer"
                         className={`flex items-center space-x-1 text-xs ${colors.accent} hover:opacity-80 transition-opacity`}>
                         <FileText size={11} /><span>View Attachment</span><ExternalLink size={9} />
                     </a>
@@ -309,7 +309,7 @@ const ChangePassword = ({ email, onSuccess }) => {
         if (form.newPassword !== form.confirmPassword) { setError('New passwords do not match'); return; }
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5001/api/teacher/password', {
+            const res = await fetch(`${API_BASE}/api/teacher/password`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, currentPassword: form.currentPassword, newPassword: form.newPassword }),
@@ -444,7 +444,7 @@ const TeacherFeeViewer = ({ rollNo, admissionYear }) => {
         setFeeData(null);
         setNoRecord(false);
         try {
-            const res = await fetch(`http://localhost:5001/api/fee?rollNo=${rollNo}&semester=${sem}`);
+            const res = await fetch(`${API_BASE}/api/fee?rollNo=${rollNo}&semester=${sem}`);
             if (res.ok) {
                 const d = await res.json();
                 setFeeData(d.fee);
@@ -486,7 +486,7 @@ const TeacherFeeViewer = ({ rollNo, admissionYear }) => {
                             <span className="font-semibold text-slate-700">{new Date(feeData.payment_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                         </div>
                         <a
-                            href={`http://localhost:5001/${feeData.receipt_pdf_path}`}
+                            href={`${API_BASE}/${feeData.receipt_pdf_path}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-xs font-semibold px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition flex items-center"
@@ -515,7 +515,7 @@ const MyStudents = ({ email }) => {
     useEffect(() => {
         const fetch_ = async () => {
             try {
-                const res = await fetch(`http://localhost:5001/api/teacher/students?email=${encodeURIComponent(email)}`);
+                const res = await fetch(`${API_BASE}/api/teacher/students?email=${encodeURIComponent(email)}`);
                 const data = await res.json();
                 if (res.ok) setStudents(data.students);
             } catch (err) {
@@ -692,12 +692,12 @@ const AssignCourseworkModal = ({ student, teacherEmail, onClose }) => {
         const fetchTargets = async () => {
             try {
                 // Fetch all available subjects
-                const subRes = await fetch('http://localhost:5001/api/teacher/coursework-subjects');
+                const subRes = await fetch(`${API_BASE}/api/teacher/coursework-subjects`);
                 const subData = await subRes.json();
                 if (subRes.ok) setAvailableSubjects(subData.subjects);
 
                 // Fetch currently assigned subjects
-                const curRes = await fetch(`http://localhost:5001/api/teacher/student-coursework?student_roll_no=${encodeURIComponent(student.student_roll_no)}`);
+                const curRes = await fetch(`${API_BASE}/api/teacher/student-coursework?student_roll_no=${encodeURIComponent(student.student_roll_no)}`);
                 const curData = await curRes.json();
                 if (curRes.ok) {
                     setAssignedSubjects(curData.subjects);
@@ -739,7 +739,7 @@ const AssignCourseworkModal = ({ student, teacherEmail, onClose }) => {
         setSubmitting(true);
         setError('');
         try {
-            const res = await fetch('http://localhost:5001/api/teacher/assign-coursework', {
+            const res = await fetch(`${API_BASE}/api/teacher/assign-coursework`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -906,7 +906,7 @@ const TeacherDashboard = () => {
     const loadProfile = async () => {
         if (!teacherEmail) return;
         try {
-            const res = await fetch(`http://localhost:5001/api/teacher/profile?email=${encodeURIComponent(teacherEmail)}`);
+            const res = await fetch(`${API_BASE}/api/teacher/profile?email=${encodeURIComponent(teacherEmail)}`);
             if (res.status === 404) {
                 setShowModal(true);
             } else if (res.ok) {
@@ -1033,7 +1033,7 @@ const TeacherDashboard = () => {
                     <div className="absolute right-20 bottom-0 w-28 h-28 bg-amber-500/5 rounded-full translate-y-1/2" />
                     <div className="relative z-10 flex items-center space-x-3">
                         <NotificationBell
-                            fetchUrl="http://localhost:5001/api/notifications/teacher"
+                            fetchUrl=`${API_BASE}/api/notifications/teacher`
                             accentColor="amber"
                         />
                         <div className="hidden md:flex items-center justify-center w-20 h-20 bg-amber-600/20 border border-amber-600/30 rounded-2xl backdrop-blur-sm">

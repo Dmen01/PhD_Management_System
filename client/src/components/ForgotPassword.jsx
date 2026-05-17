@@ -176,7 +176,7 @@ const ForgotPassword = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5001/api/auth/otp/send-reset', {
+            const res = await fetch(`${API_BASE}/api/auth/otp/send-reset`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
@@ -196,7 +196,7 @@ const ForgotPassword = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5001/api/auth/otp/verify', {
+            const res = await fetch(`${API_BASE}/api/auth/otp/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, otp })
@@ -219,7 +219,7 @@ const ForgotPassword = () => {
         }
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:5001/api/auth/password/reset', {
+            const res = await fetch(`${API_BASE}/api/auth/password/reset`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, otp, newPassword: passwords.newPassword })

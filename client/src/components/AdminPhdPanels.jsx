@@ -1,3 +1,4 @@
+import { API_BASE } from '../config.js';
 import React, { useState, useEffect, useRef } from 'react';
 import { Loader2, FileText, ExternalLink, Trash2, Send, Upload, User, LayoutList, Calendar, CheckSquare, Square, Plus, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,8 +20,8 @@ export const PhdRegistrationPresentationPanel = () => {
     const fetchData = async () => {
         try {
             const [sRes, pRes] = await Promise.all([
-                fetch('http://localhost:5001/api/phd/eligible-presentation-students'),
-                fetch('http://localhost:5001/api/phd/presentations')
+                fetch(`${API_BASE}/api/phd/eligible-presentation-students`),
+                fetch(`${API_BASE}/api/phd/presentations`)
             ]);
             const [sData, pData] = await Promise.all([sRes.json(), pRes.json()]);
             if (sRes.ok) setStudents(sData.students);
@@ -49,7 +50,7 @@ export const PhdRegistrationPresentationPanel = () => {
             fd.append('remarks', form.remarks);
             fd.append('synopsis', pdfFile);
 
-            const res = await fetch('http://localhost:5001/api/phd/presentations', { method: 'POST', body: fd });
+            const res = await fetch(`${API_BASE}/api/phd/presentations`, { method: 'POST', body: fd });
             const data = await res.json();
             
             if (res.ok) {
@@ -72,7 +73,7 @@ export const PhdRegistrationPresentationPanel = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this presentation record?')) return;
         try {
-            const res = await fetch(`http://localhost:5001/api/phd/presentations/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/phd/presentations/${id}`, { method: 'DELETE' });
             if (res.ok) setPresentations(prev => prev.filter(p => p.id !== id));
         } catch (err) { console.error(err); }
     };
@@ -212,7 +213,7 @@ export const PhdRegistrationPresentationPanel = () => {
                                     )}
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-slate-700 flex items-center justify-between">
-                                    <a href={`http://localhost:5001/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                    <a href={`${API_BASE}/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
                                         className="flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-emerald-400 hover:text-emerald-300 rounded-lg transition-colors">
                                         <FileText size={13} /><span>Synopsis</span><ExternalLink size={10} />
                                     </a>
@@ -247,8 +248,8 @@ export const PhdRegistrationLetterPanel = () => {
     const fetchData = async () => {
         try {
             const [sRes, lRes] = await Promise.all([
-                fetch('http://localhost:5001/api/phd/eligible-letter-students'),
-                fetch('http://localhost:5001/api/phd/letters')
+                fetch(`${API_BASE}/api/phd/eligible-letter-students`),
+                fetch(`${API_BASE}/api/phd/letters`)
             ]);
             const [sData, lData] = await Promise.all([sRes.json(), lRes.json()]);
             if (sRes.ok) setStudents(sData.students);
@@ -274,7 +275,7 @@ export const PhdRegistrationLetterPanel = () => {
             fd.append('registration_number', form.registration_number.trim());
             fd.append('letter', pdfFile);
 
-            const res = await fetch('http://localhost:5001/api/phd/letters', { method: 'POST', body: fd });
+            const res = await fetch(`${API_BASE}/api/phd/letters`, { method: 'POST', body: fd });
             const data = await res.json();
             
             if (res.ok) {
@@ -297,7 +298,7 @@ export const PhdRegistrationLetterPanel = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this registration letter?')) return;
         try {
-            const res = await fetch(`http://localhost:5001/api/phd/letters/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/phd/letters/${id}`, { method: 'DELETE' });
             if (res.ok) setLetters(prev => prev.filter(l => l.id !== id));
         } catch (err) { console.error(err); }
     };
@@ -401,7 +402,7 @@ export const PhdRegistrationLetterPanel = () => {
                                         </td>
                                         <td className="px-5 py-4 text-right">
                                             <div className="flex items-center justify-end space-x-2">
-                                                <a href={`http://localhost:5001/${l.letter_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                                <a href={`${API_BASE}/${l.letter_pdf_path}`} target="_blank" rel="noopener noreferrer"
                                                     className="flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-emerald-400 hover:text-emerald-300 rounded-lg transition-colors">
                                                     <FileText size={13} /><span>Open</span>
                                                 </a>
@@ -455,7 +456,7 @@ export const PhdProgressReportPanel = () => {
 
     const fetchData = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/phd/eligible-progress-students');
+            const res = await fetch(`${API_BASE}/api/phd/eligible-progress-students`);
             const data = await res.json();
             if (res.ok) {
                 setAllStudents(data.students);
@@ -468,7 +469,7 @@ export const PhdProgressReportPanel = () => {
     const fetchLogs = async (rollNo) => {
         if (!rollNo) { setReports([]); return; }
         try {
-            const res = await fetch(`http://localhost:5001/api/phd/progress-reports?roll_no=${rollNo}`);
+            const res = await fetch(`${API_BASE}/api/phd/progress-reports?roll_no=${rollNo}`);
             const data = await res.json();
             if (res.ok) setReports(data.reports);
         } catch (err) { console.error(err); }
@@ -507,7 +508,7 @@ export const PhdProgressReportPanel = () => {
             Object.keys(form).forEach(key => fd.append(key, form[key]));
             if (pdfFile) fd.append('report', pdfFile);
 
-            const res = await fetch('http://localhost:5001/api/phd/progress-reports', { method: 'POST', body: fd });
+            const res = await fetch(`${API_BASE}/api/phd/progress-reports`, { method: 'POST', body: fd });
             const data = await res.json();
             
             if (res.ok) {
@@ -530,7 +531,7 @@ export const PhdProgressReportPanel = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this progress report record?')) return;
         try {
-            const res = await fetch(`http://localhost:5001/api/phd/progress-reports/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/phd/progress-reports/${id}`, { method: 'DELETE' });
             if (res.ok) {
                 setReports(prev => prev.filter(r => r.id !== id));
             }
@@ -801,7 +802,7 @@ export const PhdProgressReportPanel = () => {
                                         <td className="px-5 py-4 text-right">
                                             <div className="flex items-center justify-end space-x-2">
                                                 {r.report_pdf_path && (
-                                                    <a href={`http://localhost:5001/${r.report_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                                    <a href={`${API_BASE}/${r.report_pdf_path}`} target="_blank" rel="noopener noreferrer"
                                                         className="w-7 h-7 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-emerald-400 rounded-lg transition-colors" title="View Report">
                                                         <FileText size={13} />
                                                     </a>
@@ -847,7 +848,7 @@ export const AdminPreSubmissionPanel = () => {
 
     const fetchData = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/phd/eligible-presubmission-students');
+            const res = await fetch(`${API_BASE}/api/phd/eligible-presubmission-students`);
             const data = await res.json();
             if (res.ok) {
                 setAllStudents(data.students);
@@ -865,8 +866,8 @@ export const AdminPreSubmissionPanel = () => {
         }
         try {
             const [pRes, countRes] = await Promise.all([
-                fetch(`http://localhost:5001/api/phd/pre-submissions?roll_no=${rollNo}`),
-                fetch(`http://localhost:5001/api/phd/pre-submissions/progress-count/${rollNo}`)
+                fetch(`${API_BASE}/api/phd/pre-submissions?roll_no=${rollNo}`),
+                fetch(`${API_BASE}/api/phd/pre-submissions/progress-count/${rollNo}`)
             ]);
             if (pRes.ok) {
                 const data = await pRes.json();
@@ -939,7 +940,7 @@ export const AdminPreSubmissionPanel = () => {
 
         setSubmitting(true);
         try {
-            const res = await fetch(`http://localhost:5001/api/phd/admin/pre-submissions`, {
+            const res = await fetch(`${API_BASE}/api/phd/admin/pre-submissions`, {
                 method: 'POST',
                 body
             });
@@ -1122,7 +1123,7 @@ export const AdminPreSubmissionPanel = () => {
                                                 <span>{new Date(p.presentation_date).toLocaleDateString('en-GB')}</span>
                                             </div>
                                         )}
-                                        <a href={`http://localhost:5001/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                                        <a href={`${API_BASE}/${p.synopsis_pdf_path}`} target="_blank" rel="noopener noreferrer"
                                             className="flex items-center space-x-1.5 text-xs font-semibold px-2 py-1 bg-slate-700 hover:bg-slate-600 text-emerald-400 rounded-lg transition-colors">
                                             <FileText size={12} /><span>View Report</span>
                                         </a>
@@ -1167,7 +1168,7 @@ export const AdminFinalSubmissionPanel = () => {
 
     const fetchStudents = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/phd/eligible-finalsubmission-students');
+            const res = await fetch(`${API_BASE}/api/phd/eligible-finalsubmission-students`);
             const data = await res.json();
             if (res.ok) { setAllStudents(data.students); setFilteredStudents(data.students); }
         } catch (err) { console.error(err); }
@@ -1178,8 +1179,8 @@ export const AdminFinalSubmissionPanel = () => {
         if (!rollNo) { setPreSubmissionDate(null); setFinalSubmissions([]); return; }
         try {
             const [dateRes, fsRes] = await Promise.all([
-                fetch(`http://localhost:5001/api/phd/final-submissions/presubmission-date/${rollNo}`),
-                fetch(`http://localhost:5001/api/phd/final-submissions?roll_no=${rollNo}`)
+                fetch(`${API_BASE}/api/phd/final-submissions/presubmission-date/${rollNo}`),
+                fetch(`${API_BASE}/api/phd/final-submissions?roll_no=${rollNo}`)
             ]);
             if (dateRes.ok) { const d = await dateRes.json(); setPreSubmissionDate(d.presentation_date); }
             if (fsRes.ok) { const d = await fsRes.json(); setFinalSubmissions(d.finalSubmissions); }
@@ -1224,7 +1225,7 @@ export const AdminFinalSubmissionPanel = () => {
 
         setSubmitting(true);
         try {
-            const res = await fetch('http://localhost:5001/api/phd/admin/final-submissions', { method: 'POST', body });
+            const res = await fetch(`${API_BASE}/api/phd/admin/final-submissions`, { method: 'POST', body });
             const data = await res.json();
             if (res.ok) {
                 setFormSuccess('Final submission recorded successfully!');
@@ -1350,7 +1351,7 @@ export const AdminFinalSubmissionPanel = () => {
                                     </div>
                                 </div>
                             </div>
-                            <a href={`http://localhost:5001/${f.notification_pdf_path}`} target="_blank" rel="noopener noreferrer"
+                            <a href={`${API_BASE}/${f.notification_pdf_path}`} target="_blank" rel="noopener noreferrer"
                                 className="flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-emerald-400 rounded-lg transition-colors">
                                 <FileText size={13} /><span>View Notification</span><ExternalLink size={10} />
                             </a>
