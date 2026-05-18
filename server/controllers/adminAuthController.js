@@ -46,7 +46,7 @@ export const registerAdmin = async (req, res) => {
     }
 
     try {
-        // Step 1: Check if email is in the pre-approved list
+        //Check if email is in the pre-approved list
         const approvedCheck = await pool.query(
             'SELECT id FROM pre_approved_admins WHERE email = $1',
             [email]
@@ -55,7 +55,7 @@ export const registerAdmin = async (req, res) => {
             return res.status(403).json({ message: "This email is not authorized to register as an admin" });
         }
 
-        // Step 2: Check if already registered
+        //Check if already registered
         const existingCheck = await pool.query(
             'SELECT id FROM admin_login_details WHERE email = $1',
             [email]
@@ -64,7 +64,7 @@ export const registerAdmin = async (req, res) => {
             return res.status(409).json({ message: "An admin account with this email already exists" });
         }
 
-        // Step 3: Hash and insert
+        //Hash and insert
         const hash = await bcrypt.hash(password, 10);
         await pool.query(
             'INSERT INTO admin_login_details (email, password_hash) VALUES ($1, $2)',

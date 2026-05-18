@@ -2,7 +2,7 @@ import pool from '../db.js';
 import logger from '../utils/logger.js';
 import fs from 'fs';
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// Helpers
 
 const buildStudentFilter = (types, modes, years) => {
     const conditions = [];
@@ -29,7 +29,7 @@ const buildStudentFilter = (types, modes, years) => {
     return { conditions, params };
 };
 
-// ── Admin: create notification ─────────────────────────────────────────────────
+// Admin: create notification
 
 export const createNotification = async (req, res) => {
     try {
@@ -103,7 +103,7 @@ export const deleteNotification = async (req, res) => {
     }
 };
 
-// ── Student: get matching notifications ───────────────────────────────────────
+// Student: get matching notifications
 
 export const getStudentNotifications = async (req, res) => {
     const { email } = req.query;

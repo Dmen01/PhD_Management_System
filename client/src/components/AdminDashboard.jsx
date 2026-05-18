@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PhdRegistrationPresentationPanel, PhdRegistrationLetterPanel, PhdProgressReportPanel, AdminPreSubmissionPanel, AdminFinalSubmissionPanel } from './AdminPhdPanels';
 
-// ── Sidebar nav config ────────────────────────────────────────────────────────
+// Sidebar nav config 
 const NAV = [
     { id: 'users', label: 'User Management', icon: Users },
     { id: 'verifications', label: 'Student Verifications', icon: ShieldCheck },
@@ -38,7 +38,7 @@ const NAV = [
     },
 ];
 
-// ── Sidebar Item ──────────────────────────────────────────────────────────────
+// Sidebar Item 
 const SidebarItem = ({ item, active, onSelect }) => {
     const [open, setOpen] = useState(false);
     const hasChildren = !!item.children;
@@ -94,7 +94,7 @@ const SidebarItem = ({ item, active, onSelect }) => {
     );
 };
 
-// ── Placeholder panel for future sections ─────────────────────────────────────
+// Placeholder panel for future sections 
 const Placeholder = ({ title }) => (
     <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-3">
         <div className="w-14 h-14 rounded-2xl bg-slate-800 flex items-center justify-center">
@@ -105,7 +105,7 @@ const Placeholder = ({ title }) => (
     </div>
 );
 
-// ── User Management Panel ─────────────────────────────────────────────────────
+// User Management Panel
 const USER_TABS = [
     { id: 'students', label: 'Students', icon: GraduationCap },
     { id: 'teachers', label: 'Teachers', icon: Users },
@@ -200,7 +200,7 @@ const StudentTable = ({ data, filter, onViewDetail }) => {
     );
 };
 
-// ── Reassign Students Modal (transfer only, no deletion) ──────────────────────
+// Reassign Students Modal (transfer only, no deletion) 
 const ReassignTeacherModal = ({ sourceTeacher, allTeachers, onSuccess, onClose }) => {
     const [newTeacherId, setNewTeacherId] = useState('');
     const [submitting, setSubmitting] = useState(false);

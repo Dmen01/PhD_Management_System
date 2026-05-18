@@ -3,7 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
-// ── Multer setup ─────────────────────────────────────────────────────────────
+// Multer setup 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         const dir = 'uploads/fee';
@@ -24,7 +24,7 @@ const fileFilter = (req, file, cb) => {
 
 export const upload = multer({ storage, fileFilter, limits: { fileSize: 2 * 1024 * 1024 } }); // 2MB max
 
-// ── Get fee detail for a specific semester ───────────────────────────────────
+// Get fee detail for a specific semester 
 export const getFeeDetail = async (req, res) => {
     const { rollNo, semester } = req.query;
     if (!rollNo || !semester) {
@@ -43,7 +43,7 @@ export const getFeeDetail = async (req, res) => {
     }
 };
 
-// ── Upload fee receipt (student — one time per semester) ─────────────────────
+//  Upload fee receipt (student — one time per semester) 
 export const uploadFeeReceipt = async (req, res) => {
     const { rollNo, semester, paymentDate, verifiedByStudent } = req.body;
 
