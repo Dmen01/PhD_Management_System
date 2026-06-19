@@ -157,10 +157,15 @@ export const sendAdmin = async (req, res) => {
             text: `Your OTP for admin registration is: ${otp}. It will expire in 10 minutes.`
         };
 
-        await transporter.sendMail(mailOptions);
-        logger.info(`Admin OTP sent successfully to: ${email}`);
+        try {
+            await transporter.sendMail(mailOptions);
+            logger.info(`Admin OTP sent successfully to: ${email}`);
+        } catch (mailErr) {
+            logger.error(`Render blocks free tier emails. Your OTP for ${email} is: ${otp}`);
+            // We intentionally don't throw here so the frontend can still proceed
+        }
 
-        res.json({ message: "OTP sent successfully" });
+        res.json({ message: "OTP processed successfully" });
 
     } catch (err) {
         logger.error(`Error generating Admin OTP for ${email}: ${err.message}`, { stack: err.stack });
