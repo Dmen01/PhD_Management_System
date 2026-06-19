@@ -34,6 +34,17 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+app.get('/api/migrate', async (req, res) => {
+    try {
+        await pool.query('ALTER TABLE pre_phd_results ADD COLUMN IF NOT EXISTS verified_by_admin BOOLEAN NOT NULL DEFAULT FALSE');
+        await pool.query('ALTER TABLE pre_phd_results ADD COLUMN IF NOT EXISTS admin_verified_at TIMESTAMP');
+        res.send('Migration successful! The columns have been added to the Render database.');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Migration failed: ' + err.message);
+    }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/fee', feeRoutes);
