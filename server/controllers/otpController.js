@@ -4,7 +4,10 @@ import nodemailer from 'nodemailer';
 import logger from '../utils/logger.js';
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    family: 4, // Forces IPv4 to bypass Render's IPv6 outbound block
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
