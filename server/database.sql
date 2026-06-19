@@ -213,3 +213,5 @@ CREATE TABLE IF NOT EXISTS phd_final_submissions (
   notification_pdf_path VARCHAR(500) NOT NULL,
   uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+INSERT INTO pre_approved_admins (email) VALUES ('dyperfect60@gmail.com');
