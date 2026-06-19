@@ -145,6 +145,8 @@ CREATE TABLE IF NOT EXISTS pre_phd_results (
   roll_no VARCHAR(50) UNIQUE NOT NULL REFERENCES student_master(roll_no) ON DELETE CASCADE,
   result_pdf_path VARCHAR(500) NOT NULL,
   verified_by_student BOOLEAN NOT NULL DEFAULT FALSE,
+  verified_by_admin BOOLEAN NOT NULL DEFAULT FALSE,
+  admin_verified_at TIMESTAMP,
   submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 -- PhD Registration Presentations
