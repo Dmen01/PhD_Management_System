@@ -3,7 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
-// ── Multer Configuration ──────────────────────────────────────────────────────
+// Multer Configuration
 const storagePresentation = multer.diskStorage({
     destination: (req, file, cb) => {
         const dir = 'uploads/phd_presentations';
