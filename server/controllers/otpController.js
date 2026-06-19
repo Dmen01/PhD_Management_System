@@ -1,18 +1,9 @@
 import pool from '../db.js';
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import logger from '../utils/logger.js';
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    family: 4, // Forces IPv4 to bypass Render's IPv6 outbound block
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+const resend = new Resend(process.env.RESEND_API_KEY || 're_HKKuvK7z_GCFR1u1zGNVCztBgVyKdCjSW');
 
 // Generate a 6-digit OTP
 const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
@@ -40,16 +31,18 @@ export const send = async (req, res) => {
             [email, otp, expiresAt]
         );
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
+        const { data, error } = await resend.emails.send({
+            from: 'Ph.D ERP <onboarding@resend.dev>',
+            to: [email],
             subject: 'Your Registration OTP',
-            text: `Your OTP for registration is: ${otp}. It will expire in 10 minutes.`
-        };
+            html: `<p>Your OTP for registration is: <strong>${otp}</strong>. It will expire in 10 minutes.</p>`
+        });
 
-        await transporter.sendMail(mailOptions);
+        if (error) {
+            throw new Error(error.message);
+        }
+
         logger.info(`OTP sent successfully to: ${email}`);
-
         res.json({ message: "OTP sent successfully" });
 
     } catch (err) {
@@ -103,16 +96,18 @@ export const sendReset = async (req, res) => {
             [email, otp, expiresAt]
         );
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
+        const { data, error } = await resend.emails.send({
+            from: 'Ph.D ERP <onboarding@resend.dev>',
+            to: [email],
             subject: 'Your Password Reset OTP',
-            text: `Your OTP for resetting your password is: ${otp}. It will expire in 10 minutes.`
-        };
+            html: `<p>Your OTP for resetting your password is: <strong>${otp}</strong>. It will expire in 10 minutes.</p>`
+        });
 
-        await transporter.sendMail(mailOptions);
+        if (error) {
+            throw new Error(error.message);
+        }
+
         logger.info(`Reset OTP sent successfully to: ${email}`);
-
         res.json({ message: "Reset OTP sent successfully" });
 
     } catch (err) {
@@ -150,22 +145,19 @@ export const sendAdmin = async (req, res) => {
             [email, otp, expiresAt]
         );
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
+        const { data, error } = await resend.emails.send({
+            from: 'Ph.D ERP <onboarding@resend.dev>',
+            to: [email],
             subject: 'Your Admin Registration OTP',
-            text: `Your OTP for admin registration is: ${otp}. It will expire in 10 minutes.`
-        };
+            html: `<p>Your OTP for admin registration is: <strong>${otp}</strong>. It will expire in 10 minutes.</p>`
+        });
 
-        try {
-            await transporter.sendMail(mailOptions);
-            logger.info(`Admin OTP sent successfully to: ${email}`);
-        } catch (mailErr) {
-            logger.error(`Render blocks free tier emails. Your OTP for ${email} is: ${otp}`);
-            // We intentionally don't throw here so the frontend can still proceed
+        if (error) {
+            throw new Error(error.message);
         }
 
-        res.json({ message: "OTP processed successfully" });
+        logger.info(`Admin OTP sent successfully to: ${email}`);
+        res.json({ message: "OTP sent successfully" });
 
     } catch (err) {
         logger.error(`Error generating Admin OTP for ${email}: ${err.message}`, { stack: err.stack });
@@ -199,16 +191,18 @@ export const sendTeacherOtp = async (req, res) => {
             [email, otp, expiresAt]
         );
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
+        const { data, error } = await resend.emails.send({
+            from: 'Ph.D ERP <onboarding@resend.dev>',
+            to: [email],
             subject: 'Your Teacher Registration OTP',
-            text: `Your OTP for teacher registration is: ${otp}. It will expire in 10 minutes.`
-        };
+            html: `<p>Your OTP for teacher registration is: <strong>${otp}</strong>. It will expire in 10 minutes.</p>`
+        });
 
-        await transporter.sendMail(mailOptions);
+        if (error) {
+            throw new Error(error.message);
+        }
+
         logger.info(`Teacher OTP sent successfully to: ${email}`);
-
         res.json({ message: "OTP sent successfully" });
 
     } catch (err) {
@@ -216,4 +210,5 @@ export const sendTeacherOtp = async (req, res) => {
         res.status(500).json({ message: "Server error generating OTP" });
     }
 };
+
 
